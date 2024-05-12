@@ -17,6 +17,7 @@ public class PluginConfig : BasePluginConfig
     [JsonPropertyName("fetch_mapgroup_over_rcon")]
     public bool FetchMapGroupOverRcon { get; set; } = false;
     [JsonPropertyName("maps")] public ImmutableList<string> Maps { get; set; } = ImmutableList<string>.Empty;
+    [JsonPropertyName("callvote_enabled")] public bool CallVoteEnabled { get; set; } = true;
     [JsonPropertyName("callvote_cooldown")]
     public int CallVoteCooldown { get; set; } = 120;
     [JsonPropertyName("rtv_cooldown")]
@@ -31,7 +32,7 @@ public class NativeMapVotePlugin : BasePlugin, IPluginConfig<PluginConfig>
 {
     public override string ModuleName => "Native Map Vote Plugin";
     public override string ModuleAuthor => "Jon-Mailes Graeffe <mail@jonni.it>";
-    public override string ModuleVersion => "1.0.0";
+    public override string ModuleVersion => "1.0.1";
     public ChatMenu? NominationMenuAllMaps;
     public ChatMenu? CallVoteMenuAllMaps;
     
@@ -181,6 +182,12 @@ public class NativeMapVotePlugin : BasePlugin, IPluginConfig<PluginConfig>
 
     private void OnCallVoteCommand(CCSPlayerController? player, CommandInfo info)
     {
+        if (!Config.CallVoteEnabled)
+        {
+            info.ReplyToCommand("Callvotes disabled at the moment! Consider to nominate a map and start an !rtv vote instead.");
+            return;
+        }
+        
         if (Config.Maps.Count == 0)
         {
             info.ReplyToCommand("Callvotes disabled because there are no maps in the active map group!");
