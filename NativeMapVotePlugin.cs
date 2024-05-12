@@ -479,7 +479,7 @@ public class NativeMapVotePlugin : BasePlugin, IPluginConfig<PluginConfig>
     private int PickPseudoRandomMapIndex(ref List<int> exceptThoseMaps)
     {
         int i;
-        do i = Random.Shared.Next(Config.Maps.Count - 1);
+        do i = Random.Shared.Next(Config.Maps.Count);
         while (exceptThoseMaps.Contains(i));
         return i;
     }
@@ -515,6 +515,8 @@ public class NativeMapVotePlugin : BasePlugin, IPluginConfig<PluginConfig>
             }
             
             alreadyAddedOptions.Add(option);
+            
+            if (alreadyAddedOptions.Count >= Config.Maps.Count) break;
         }
         Console.WriteLine("[NativeMapVotePlugin][INFO] Successfully manipulated the vote (no scandal though)!");
     }
