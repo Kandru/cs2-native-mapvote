@@ -16,6 +16,7 @@ public class PluginConfig : BasePluginConfig
 {
     [JsonPropertyName("fetch_mapgroup_over_rcon")]
     public bool FetchMapGroupOverRcon { get; set; } = false;
+    [JsonPropertyName("rcon_port")] public int RconPort { get; set; } = 27015;
     [JsonPropertyName("maps")] public ImmutableList<string> Maps { get; set; } = ImmutableList<string>.Empty;
     [JsonPropertyName("callvote_enabled")] public bool CallVoteEnabled { get; set; } = true;
     [JsonPropertyName("callvote_cooldown")]
@@ -32,7 +33,7 @@ public class NativeMapVotePlugin : BasePlugin, IPluginConfig<PluginConfig>
 {
     public override string ModuleName => "Native Map Vote Plugin";
     public override string ModuleAuthor => "Jon-Mailes Graeffe <mail@jonni.it>";
-    public override string ModuleVersion => "1.0.1";
+    public override string ModuleVersion => "1.0.2";
     public ChatMenu? NominationMenuAllMaps;
     public ChatMenu? CallVoteMenuAllMaps;
     
@@ -430,10 +431,6 @@ public class NativeMapVotePlugin : BasePlugin, IPluginConfig<PluginConfig>
     
     private void FetchMapGroupOverRcon()
     {
-        var port = 27015;
-        var portCvar = ConVar.Find("port");
-        if (portCvar != null) port = portCvar.GetPrimitiveValue<int>();
-
         var rconPasswordCvar = ConVar.Find("rcon_password");
         if (rconPasswordCvar == null || rconPasswordCvar.StringValue == null || rconPasswordCvar.StringValue.Length == 0)
         {
@@ -442,7 +439,7 @@ public class NativeMapVotePlugin : BasePlugin, IPluginConfig<PluginConfig>
         }
         
         Task.Run(async () => {
-            var client = RconClient.Create("127.0.0.1", port);
+            var client = RconClient.Create("127.0.0.1", Config.RconPort);
             await client.ConnectAsync();
             await client.AuthenticateAsync(rconPasswordCvar.StringValue);
             var output = await client.ExecuteCommandAsync("print_mapgroup_sv");
