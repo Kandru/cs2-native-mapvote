@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Globalization;
 using System.Text.Json.Serialization;
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
@@ -90,7 +91,7 @@ public class NativeMapVotePlugin : BasePlugin, IPluginConfig<PluginConfig>
     {
         if (Config.Maps.Count == 0)
         {
-            info.ReplyToCommand("Nomination disabled because there are no maps in the active map group!");
+            info.ReplyToCommand(Localizer["nominations.disabledEmptyMapgroup"]);
             return;
         }
         
@@ -99,7 +100,7 @@ public class NativeMapVotePlugin : BasePlugin, IPluginConfig<PluginConfig>
         {
             if (player == null)
             {
-                info.ReplyToCommand("You need to specify a map name or a unique map prefix!");
+                info.ReplyToCommand(Localizer["nominations.beMoreSpecific"]);
                 return;
             }
 
@@ -116,7 +117,7 @@ public class NativeMapVotePlugin : BasePlugin, IPluginConfig<PluginConfig>
             return;
         }
         
-        var menu = new ChatMenu("Nominate a map:");
+        var menu = new ChatMenu(Localizer["nominations.chatMenuTitle"]);
         foreach (var mapName in Config.Maps)
         {
             if (mapName.StartsWith(query) || mapName.Contains(query))
@@ -130,7 +131,7 @@ public class NativeMapVotePlugin : BasePlugin, IPluginConfig<PluginConfig>
         
         if (menu.MenuOptions.Count == 0)
         {
-            info.ReplyToCommand("No map was found that starts with or contains your query. Please try again!");
+            info.ReplyToCommand(Localizer["nominations.noMapFound"]);
             return;
         }
 
@@ -144,7 +145,7 @@ public class NativeMapVotePlugin : BasePlugin, IPluginConfig<PluginConfig>
         // if we deal with an RCON or internal command invocation, and we have multiple options, we cannot really show a menu unfortunately
         if (player == null)
         {
-            info.ReplyToCommand("No map with the exact name " + query + " was found. Did you mean one of the following maps?");
+            info.ReplyToCommand(Localizer["nominations.couldNotIdentify"]);
             foreach (var option in menu.MenuOptions)
             {
                 info.ReplyToCommand("- " + option.Text);
@@ -159,11 +160,12 @@ public class NativeMapVotePlugin : BasePlugin, IPluginConfig<PluginConfig>
     {
         if (_nominatedMapNames.Count == 0)
         {
-            info.ReplyToCommand("No nominations so far. Type in !nom <map-name> to nominate a map for voting after match end!");
+            Server.PrintToChatAll(Localizer["nominations.noNominationsYet"]);
+            Server.PrintToConsole(Localizer["nominations.noNominationsYet"]);
             return;
         }
         
-        var reply = "[Nominations] Nominated maps so far: " + _nominatedMapNames.First();
+        var reply = Localizer["nominations.nominationListPrefix"] + _nominatedMapNames.First();
         if (_nominatedMapNames.Count > 1)
         {
             bool first = true;
@@ -179,19 +181,20 @@ public class NativeMapVotePlugin : BasePlugin, IPluginConfig<PluginConfig>
             }
         }
         Server.PrintToChatAll(reply);
+        Server.PrintToConsole(reply);
     }
 
     private void OnCallVoteCommand(CCSPlayerController? player, CommandInfo info)
     {
         if (!Config.CallVoteEnabled)
         {
-            info.ReplyToCommand("Callvotes disabled at the moment! Consider to nominate a map and start an !rtv vote instead.");
+            info.ReplyToCommand(Localizer["callVotes.disabledManually"]);
             return;
         }
         
         if (Config.Maps.Count == 0)
         {
-            info.ReplyToCommand("Callvotes disabled because there are no maps in the active map group!");
+            info.ReplyToCommand(Localizer["callVotes.disabledEmptyMapgroup"]);
             return;
         }
         
@@ -201,7 +204,8 @@ public class NativeMapVotePlugin : BasePlugin, IPluginConfig<PluginConfig>
             var secondsSinceLastCallvote = (DateTime.Now - _lastCallVote).Value.TotalSeconds;
             if (secondsSinceLastCallvote < Config.CallVoteCooldown)
             {
-                info.ReplyToCommand($"The next callvote can be started in {double.Ceiling(Config.CallVoteCooldown - secondsSinceLastCallvote)} seconds!");
+                info.ReplyToCommand(Localizer["callVotes.activeCooldown"].Value.Replace("{seconds}",
+                    double.Ceiling(Config.CallVoteCooldown - secondsSinceLastCallvote).ToString(CultureInfo.CurrentCulture)));
                 return;
             }
         }
@@ -211,7 +215,7 @@ public class NativeMapVotePlugin : BasePlugin, IPluginConfig<PluginConfig>
         {
             if (player == null)
             {
-                info.ReplyToCommand("You need to specify a map name or a unique map prefix!");
+                info.ReplyToCommand(Localizer["callVotes.beMoreSpecific"]);
                 return;
             }
 
@@ -228,7 +232,7 @@ public class NativeMapVotePlugin : BasePlugin, IPluginConfig<PluginConfig>
             return;
         }
         
-        var menu = new ChatMenu("Choose map for callvote:");
+        var menu = new ChatMenu(Localizer["callVotes.chatMenuTitle"]);
         foreach (var mapName in Config.Maps)
         {
             if (mapName.StartsWith(query) || mapName.Contains(query))
@@ -242,7 +246,7 @@ public class NativeMapVotePlugin : BasePlugin, IPluginConfig<PluginConfig>
         
         if (menu.MenuOptions.Count == 0)
         {
-            info.ReplyToCommand("No map was found that starts with or contains your query. Please try again!");
+            info.ReplyToCommand(Localizer["callVotes.noMapFound"]);
             return;
         }
 
@@ -256,7 +260,7 @@ public class NativeMapVotePlugin : BasePlugin, IPluginConfig<PluginConfig>
         // if we deal with an RCON or internal command invocation, and we have multiple options, we cannot really show a menu unfortunately
         if (player == null)
         {
-            info.ReplyToCommand("No map with the exact name " + query + " was found. Did you mean one of the following maps?");
+            info.ReplyToCommand(Localizer["callVotes.couldNotIdentify"]);
             foreach (var option in menu.MenuOptions)
             {
                 info.ReplyToCommand("- " + option.Text);
@@ -278,7 +282,7 @@ public class NativeMapVotePlugin : BasePlugin, IPluginConfig<PluginConfig>
                 var secondsSinceLastRtv = (DateTime.Now - _lastRtv).Value.TotalSeconds;
                 if (secondsSinceLastRtv < Config.RtvCooldown)
                 {
-                    info.ReplyToCommand($"The next RTV can be started in {double.Ceiling(Config.RtvCooldown - secondsSinceLastRtv)} seconds!");
+                    info.ReplyToCommand(Localizer["rtv.activeCooldown"].Value.Replace("{seconds}", double.Ceiling(Config.RtvCooldown - secondsSinceLastRtv).ToString(CultureInfo.CurrentCulture)));
                     return;
                 }
             }
@@ -288,21 +292,25 @@ public class NativeMapVotePlugin : BasePlugin, IPluginConfig<PluginConfig>
             
             if (player != null)
             {
-                Server.PrintToChatAll($"[RTV] Player {player.PlayerName} started an RTV vote. Type in !rtv if you want to change the map!");
+                var reply = Localizer["rtv.voteStartedByPlayer"].Value.Replace("{player}", player.PlayerName);
+                Server.PrintToChatAll(reply);
+                Server.PrintToConsole(reply);
             }
             else
             {
-                Server.PrintToChatAll("[RTV] An RTV vote was started. Type in !rtv if you want to change the map!");
+                var reply = Localizer["rtv.voteStartedByUnknownEntity"];
+                Server.PrintToChatAll(reply);
+                Server.PrintToConsole(reply);
             }
         }
 
         if (_playersVotedForRtv.Add(player != null ? player.AuthorizedSteamID : null))
         {
-            info.ReplyToCommand("Successfully voted for map change!");
+            info.ReplyToCommand(Localizer["rtv.votedSuccessfully"]);
         }
         else
         {
-            info.ReplyToCommand("Already voted for map change!");
+            info.ReplyToCommand(Localizer["rtv.alreadyVoted"]);
         }
     }
 
@@ -312,15 +320,18 @@ public class NativeMapVotePlugin : BasePlugin, IPluginConfig<PluginConfig>
         {
             if (player != null)
             {
-                Server.PrintToChatAll("[Nominations] Player " + player.PlayerName + " nominated map " + mapName + " for the map vote at match end!");
+                var reply = Localizer["nominations.nominationByPlayerSuccessful"].Value.Replace("{player}", player.PlayerName)
+                    .Replace("{map}", mapName);
+                Server.PrintToChatAll(reply);
+                Server.PrintToConsole(reply);
                 
                 // check if this player nominated a map already and denominate it
                 if (player.AuthorizedSteamID != null)
                 {
                     if (!_playerNominations.TryAdd(player.AuthorizedSteamID, mapName))
                     {
-                        var reply = "Removed your previous nomination of map " +
-                                _playerNominations[player.AuthorizedSteamID] + "!";
+                        reply = Localizer["nominations.removedPreviousNomination"].Value
+                            .Replace("map", _playerNominations[player.AuthorizedSteamID]);
                         if (info != null) info.ReplyToCommand(reply);
                         else player.PrintToChat(reply);
                         
@@ -331,12 +342,15 @@ public class NativeMapVotePlugin : BasePlugin, IPluginConfig<PluginConfig>
             }
             else
             {
-                Server.PrintToChatAll("[Nominations] Map " + mapName + " was nominated for the map vote at match end!");
+                var reply = Localizer["nominations.nominationByUnknownEntitySuccessful"].Value
+                    .Replace("{map}", mapName);
+                Server.PrintToChatAll(reply);
+                Server.PrintToConsole(reply);
             }
         }
         else
         {
-            var reply = "The map " + mapName + " is already nominated!";
+            var reply = Localizer["nominations.alreadyNominated"].Value.Replace("{map}", mapName);
             if (info != null) info.ReplyToCommand(reply);
             else if (player != null) player.PrintToChat(reply);
             else Server.PrintToConsole(reply);
@@ -374,8 +388,10 @@ public class NativeMapVotePlugin : BasePlugin, IPluginConfig<PluginConfig>
                 Console.WriteLine("[NativeMapVotePlugin][ERROR] Creating game end entity failed!");
             }*/
             Server.ExecuteCommand("mp_maxrounds 0");
-            
-            Server.PrintToChatAll("[RTV] Vote succeeded. Changing map after this round!");
+
+            var reply = Localizer["rtv.voteSucceeded"];
+            Server.PrintToChatAll(reply);
+            Server.PrintToConsole(reply);
             return;
         }
         
@@ -383,16 +399,25 @@ public class NativeMapVotePlugin : BasePlugin, IPluginConfig<PluginConfig>
         var secondsSinceLastRtv = (DateTime.Now - _lastRtv).Value.TotalSeconds;
         if (secondsSinceLastRtv >= Config.RtvDuration)
         {
-            Server.PrintToChatAll($"[RTV] Vote failed. Not enough votes ({_playersVotedForRtv.Count}/{playersNeeded} players), not changing map!");
+            var reply = Localizer["rtv.voteFailed"].Value.Replace("{playersVoted}", _playersVotedForRtv.Count.ToString())
+                .Replace("{playersNeeded}", playersNeeded.ToString(CultureInfo.CurrentCulture));
+            Server.PrintToChatAll(reply);
+            Server.PrintToConsole(reply);
             
             _playersVotedForRtv.Clear();
             return;
         }
 
         AddTimer(Config.RtvMessageInterval, RunRtvLoop, TimerFlags.STOP_ON_MAPCHANGE);
-        
-        Server.PrintToChatAll($"[RTV] Vote in progress - {_playersVotedForRtv.Count} of {playersNeeded} players voted for changing the map!");
-        Server.PrintToChatAll($"[RTV] Type in !rtv to vote. Remember to !nominate maps for the map vote!");
+
+        var reply2 = Localizer["rtv.status"].Value.Replace("{playersVoted}",
+            _playersVotedForRtv.Count.ToString().Replace("{playersNeeded}", playersNeeded.ToString(CultureInfo.CurrentCulture)));
+        Server.PrintToChatAll(reply2);
+        Server.PrintToConsole(reply2);
+
+        reply2 = Localizer["rtv.statusHint"];
+        Server.PrintToChatAll(reply2);
+        Server.PrintToConsole(reply2);
     }
 
     private void CallVote(string mapName, CCSPlayerController? player)
@@ -402,18 +427,23 @@ public class NativeMapVotePlugin : BasePlugin, IPluginConfig<PluginConfig>
         
         if (player != null)
         {
-            Server.PrintToChatAll($"[Callvote] Player {player.PlayerName} started a callvote for map {mapName}!");
+            var reply = Localizer["callVotes.voteStartedByPlayer"].Value.Replace("{player}", player.PlayerName)
+                .Replace("{map}", mapName);
+            Server.PrintToChatAll(reply);
+            Server.PrintToConsole(reply);
         }
         else
         {
-            Server.PrintToChatAll($"[Callvote] A callvote for map {mapName} was started!");
+            var reply = Localizer["callVotes.voteStartedByUnknownEntity"].Value.Replace("{map}", mapName);
+            Server.PrintToChatAll(reply);
+            Server.PrintToConsole(reply);
         }
     }
     
     private void OnMapGroupChange()
     {
-        var nominateMenu = new ChatMenu("Nominate a map for map vote:");
-        var callVoteMenu = new ChatMenu("Choose map for callvote:");
+        var nominateMenu = new ChatMenu(Localizer["nominations.chatMenuTitle"]);
+        var callVoteMenu = new ChatMenu(Localizer["callVotes.chatMenuTitle"]);
         foreach (var mapName in Config.Maps)
         {
             nominateMenu.AddMenuOption(mapName, (player, _) =>
