@@ -411,7 +411,7 @@ public class NativeMapVotePlugin : BasePlugin, IPluginConfig<PluginConfig>
         AddTimer(Config.RtvMessageInterval, RunRtvLoop, TimerFlags.STOP_ON_MAPCHANGE);
 
         var reply2 = Localizer["rtv.status"].Value.Replace("{playersVoted}",
-            _playersVotedForRtv.Count.ToString().Replace("{playersNeeded}", playersNeeded.ToString(CultureInfo.CurrentCulture)));
+            _playersVotedForRtv.Count.ToString()).Replace("{playersNeeded}", playersNeeded.ToString(CultureInfo.CurrentCulture));
         Server.PrintToChatAll(reply2);
         Server.PrintToConsole(reply2);
 
