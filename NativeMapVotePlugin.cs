@@ -288,10 +288,7 @@ public class NativeMapVotePlugin : BasePlugin, IPluginConfig<PluginConfig>
                     return;
                 }
             }
-            
-            _lastRtv = DateTime.Now;
-            AddTimer(Config.RtvMessageInterval, RunRtvLoop, TimerFlags.STOP_ON_MAPCHANGE);
-            
+         
             if (player != null)
             {
                 var reply = Localizer["rtv.voteStartedByPlayer"].Value.Replace("{player}", player.PlayerName);
@@ -304,6 +301,12 @@ public class NativeMapVotePlugin : BasePlugin, IPluginConfig<PluginConfig>
                 Server.PrintToChatAll(reply);
                 Server.PrintToConsole(reply);
             }
+
+            _lastRtv = DateTime.Now;
+            _playersVotedForRtv.Add(player != null ? player.AuthorizedSteamID : null);
+            RunRtvLoop();
+            
+            return;
         }
 
         if (_playersVotedForRtv.Add(player != null ? player.AuthorizedSteamID : null))
@@ -372,8 +375,9 @@ public class NativeMapVotePlugin : BasePlugin, IPluginConfig<PluginConfig>
     }
     private void RunRtvLoop()
     {
-        if (!_playersVotedForRtv.Any() || _lastRtv == null) return;
-
+        // if the loop runs into intermission or something
+        if (_lastRtv == null) return;
+        
         var playersNeeded = Math.Ceiling(Config.RtvPercentage * GetPlayingPlayerCount());
         
         // RTV passed successfully
