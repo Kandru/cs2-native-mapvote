@@ -28,6 +28,8 @@ public class PluginConfig : BasePluginConfig
     [JsonPropertyName("rtv_message_interval")]
     public int RtvMessageInterval { get; set; } = 15;
     [JsonPropertyName("rtv_duration")] public int RtvDuration { get; set; } = 60;
+    [JsonPropertyName("rtv_end_match_command")]
+    public string RtvEndMatchCommand { get; set; } = "mp_halftime false; mp_maxrounds 1";
 }
 
 public class NativeMapVotePlugin : BasePlugin, IPluginConfig<PluginConfig>
@@ -378,16 +380,9 @@ public class NativeMapVotePlugin : BasePlugin, IPluginConfig<PluginConfig>
         if (_playersVotedForRtv.Count >= playersNeeded)
         {
             _playersVotedForRtv.Clear();
-            /*var ent = Utilities.CreateEntityByName<CGameEnd>("game_end");
-            if (ent != null)
-            {
-                ent.DispatchSpawn();
-            }
-            else
-            {
-                Console.WriteLine("[NativeMapVotePlugin][ERROR] Creating game end entity failed!");
-            }*/
-            Server.ExecuteCommand("mp_maxrounds 0");
+            
+            // let the match end with the command provided in the config
+            Server.ExecuteCommand(Config.RtvEndMatchCommand);
 
             var reply = Localizer["rtv.voteSucceeded"];
             Server.PrintToChatAll(reply);
