@@ -24,6 +24,7 @@
   "rtv.voteStartedByUnknownEntity": " {lightblue}[RTV] {default}An RTV vote was started. Type in {lime}!rtv{default} if you want to change the map!",
   "rtv.votedSuccessfully": " {lightblue}>> {default}Successfully voted for map change!",
   "rtv.alreadyVoted": " {lightblue}>> {default}Already voted for map change!",
+  "rtv.alreadySucceeded": " {lightblue}>> {default}A previous RTV vote was already successful, and the map will be changed after this round!",
   "rtv.voteSucceeded": " {lightblue}[RTV] {default}Vote succeeded. Changing map after this round!",
   "rtv.voteFailed": " {lightblue}[RTV] {default}Vote failed. Only {lime}{playersVoted}{default} of {lime}{playersNeeded}{default} players voted, so not changing map!",
   "rtv.status": " {lightblue}[RTV] {default}Vote in progress - {lime}{playersVoted}{default} of {lime}{playersNeeded}{default} needed players voted for changing the map!",

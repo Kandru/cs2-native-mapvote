@@ -275,6 +275,13 @@ public class NativeMapVotePlugin : BasePlugin, IPluginConfig<PluginConfig>
 
     private void OnRtvCommand(CCSPlayerController? player, CommandInfo info)
     {
+        // RTV succeeded already
+        if (_lastRtv == DateTime.MaxValue)
+        {
+            info.ReplyToCommand(Localizer["rtv.alreadySucceeded"]);
+            return;
+        }
+        
         // RTV is not running yet, start it
         if (!_playersVotedForRtv.Any())
         {
@@ -383,8 +390,9 @@ public class NativeMapVotePlugin : BasePlugin, IPluginConfig<PluginConfig>
         // RTV passed successfully
         if (_playersVotedForRtv.Count >= playersNeeded)
         {
-            _playersVotedForRtv.Clear();
-            
+            // special value signaling RTV succeeded
+            _lastRtv = DateTime.MaxValue;
+
             // let the match end with the command provided in the config
             Server.ExecuteCommand(Config.RtvEndMatchCommand);
 
