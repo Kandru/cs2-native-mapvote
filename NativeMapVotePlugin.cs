@@ -7,7 +7,6 @@ using CounterStrikeSharp.API.Modules.Commands;
 using CounterStrikeSharp.API.Modules.Cvars;
 using CounterStrikeSharp.API.Modules.Entities;
 using CounterStrikeSharp.API.Modules.Menu;
-using CounterStrikeSharp.API.Modules.Timers;
 using CounterStrikeSharp.API.Modules.Utils;
 using RconSharp;
 
@@ -45,14 +44,35 @@ public class NativeMapVotePlugin : BasePlugin, IPluginConfig<PluginConfig>
     private readonly HashSet<string> _nominatedMapNames = new();
     private readonly Dictionary<SteamID, string> _playerNominations = new();
     private DateTime? _lastCallVote;
-    private readonly HashSet<SteamID?> _playersVotedForRtv = new();
-    private DateTime? _lastRtv;
+    private readonly ChatVote _rtvChatVote;
+
+    public NativeMapVotePlugin()
+    {
+        _rtvChatVote = new(this);
+    }
     
     public void OnConfigParsed(PluginConfig config)
     {
         Config = config;
         if (Config.FetchMapGroupOverRcon) FetchMapGroupOverRcon();
         else OnMapGroupChange();
+
+        _rtvChatVote.Duration = config.RtvDuration;
+        _rtvChatVote.Cooldown = config.RtvCooldown;
+        _rtvChatVote.Percentage = config.RtvPercentage;
+        _rtvChatVote.NotificationInterval = config.RtvMessageInterval;
+        _rtvChatVote.AllowSpectators = false;
+        _rtvChatVote.Localizer.AlreadyVoted = Localizer["rtv.alreadyVoted"];
+        _rtvChatVote.Localizer.VotedSuccessfully = Localizer["rtv.votedSuccessfully"];
+        _rtvChatVote.Localizer.VoteSucceeded = Localizer["rtv.voteSucceeded"];
+        _rtvChatVote.Localizer.VoteFailed = Localizer["rtv.voteFailed"];
+        _rtvChatVote.Localizer.VoteAlreadySucceeded = Localizer["rtv.alreadySucceeded"];
+        _rtvChatVote.Localizer.AnotherVoteRunning = Localizer["rtv.anotherVoteRunning"];
+        _rtvChatVote.Localizer.ActiveCooldown = Localizer["rtv.activeCooldown"];
+        _rtvChatVote.Localizer.VoteStartedByPlayer = Localizer["rtv.voteStartedByPlayer"];
+        _rtvChatVote.Localizer.VoteStartedByUnknownEntity = Localizer["rtv.voteStartedByUnknownEntity"];
+        _rtvChatVote.Localizer.Notification = Localizer["rtv.status"];
+        _rtvChatVote.Localizer.NotificationHint = Localizer["rtv.statusHint"];
     }
 
     public override void Load(bool hotReload)
@@ -74,6 +94,8 @@ public class NativeMapVotePlugin : BasePlugin, IPluginConfig<PluginConfig>
         AddCommand("css_rtv", "Starts a vote to end the match immediately, consequently starting a map vote", OnRtvCommand);
         AddCommand("css_skip", "Starts a vote to end the match immediately, consequently starting a map vote", OnRtvCommand);
     
+        _rtvChatVote.OnVoteSucceeded += OnRtvVoteSucceeded;
+        
         Reset();
     }
 
@@ -272,58 +294,10 @@ public class NativeMapVotePlugin : BasePlugin, IPluginConfig<PluginConfig>
         
         MenuManager.OpenChatMenu(player, menu);
     }
-
-    private void OnRtvCommand(CCSPlayerController? player, CommandInfo info)
+    
+    private void OnRtvVoteSucceeded()
     {
-        // RTV succeeded already
-        if (_lastRtv == DateTime.MaxValue)
-        {
-            info.ReplyToCommand(Localizer["rtv.alreadySucceeded"]);
-            return;
-        }
-        
-        // RTV is not running yet, start it
-        if (!_playersVotedForRtv.Any())
-        {
-            // cooldown check
-            if (_lastRtv != null)
-            {
-                var secondsSinceLastRtv = (DateTime.Now - _lastRtv).Value.TotalSeconds;
-                if (secondsSinceLastRtv < Config.RtvCooldown)
-                {
-                    info.ReplyToCommand(Localizer["rtv.activeCooldown"].Value.Replace("{seconds}", double.Ceiling(Config.RtvCooldown - secondsSinceLastRtv).ToString(CultureInfo.CurrentCulture)));
-                    return;
-                }
-            }
-         
-            if (player != null)
-            {
-                var reply = Localizer["rtv.voteStartedByPlayer"].Value.Replace("{player}", player.PlayerName);
-                Server.PrintToChatAll(reply);
-                Server.PrintToConsole(reply);
-            }
-            else
-            {
-                var reply = Localizer["rtv.voteStartedByUnknownEntity"];
-                Server.PrintToChatAll(reply);
-                Server.PrintToConsole(reply);
-            }
-
-            _lastRtv = DateTime.Now;
-            _playersVotedForRtv.Add(player != null ? player.AuthorizedSteamID : null);
-            RunRtvLoop();
-            
-            return;
-        }
-
-        if (_playersVotedForRtv.Add(player != null ? player.AuthorizedSteamID : null))
-        {
-            info.ReplyToCommand(Localizer["rtv.votedSuccessfully"]);
-        }
-        else
-        {
-            info.ReplyToCommand(Localizer["rtv.alreadyVoted"]);
-        }
+        Server.ExecuteCommand(Config.RtvEndMatchCommand);
     }
 
     private void Nominate(string mapName, CCSPlayerController? player, CommandInfo? info)
@@ -380,53 +354,7 @@ public class NativeMapVotePlugin : BasePlugin, IPluginConfig<PluginConfig>
 
         return count;
     }
-    private void RunRtvLoop()
-    {
-        // if the loop runs into intermission or something
-        if (_lastRtv == null) return;
-        
-        var playersNeeded = Math.Ceiling(Config.RtvPercentage * GetPlayingPlayerCount());
-        
-        // RTV passed successfully
-        if (_playersVotedForRtv.Count >= playersNeeded)
-        {
-            // special value signaling RTV succeeded
-            _lastRtv = DateTime.MaxValue;
-
-            // let the match end with the command provided in the config
-            Server.ExecuteCommand(Config.RtvEndMatchCommand);
-
-            var reply = Localizer["rtv.voteSucceeded"];
-            Server.PrintToChatAll(reply);
-            Server.PrintToConsole(reply);
-            return;
-        }
-        
-        // duration check
-        var secondsSinceLastRtv = (DateTime.Now - _lastRtv).Value.TotalSeconds;
-        if (secondsSinceLastRtv >= Config.RtvDuration)
-        {
-            var reply = Localizer["rtv.voteFailed"].Value.Replace("{playersVoted}", _playersVotedForRtv.Count.ToString())
-                .Replace("{playersNeeded}", playersNeeded.ToString(CultureInfo.CurrentCulture));
-            Server.PrintToChatAll(reply);
-            Server.PrintToConsole(reply);
-            
-            _playersVotedForRtv.Clear();
-            return;
-        }
-
-        AddTimer(Config.RtvMessageInterval, RunRtvLoop, TimerFlags.STOP_ON_MAPCHANGE);
-
-        var reply2 = Localizer["rtv.status"].Value.Replace("{playersVoted}",
-            _playersVotedForRtv.Count.ToString()).Replace("{playersNeeded}", playersNeeded.ToString(CultureInfo.CurrentCulture));
-        Server.PrintToChatAll(reply2);
-        Server.PrintToConsole(reply2);
-
-        reply2 = Localizer["rtv.statusHint"];
-        Server.PrintToChatAll(reply2);
-        Server.PrintToConsole(reply2);
-    }
-
+   
     private void CallVote(string mapName, CCSPlayerController? player)
     {
         Server.ExecuteCommand($"callvote changelevel {mapName}");
@@ -567,7 +495,6 @@ public class NativeMapVotePlugin : BasePlugin, IPluginConfig<PluginConfig>
         _nominatedMapNames.Clear();
         _playerNominations.Clear();
         _lastCallVote = null;
-        _playersVotedForRtv.Clear();
-        _lastRtv = null;
+        _rtvChatVote.Reset();
     }
 }

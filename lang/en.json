@@ -28,5 +28,6 @@
   "rtv.voteSucceeded": " {lightblue}[RTV] {default}Vote succeeded. Changing map after this round!",
   "rtv.voteFailed": " {lightblue}[RTV] {default}Vote failed. Only {lime}{playersVoted}{default} of {lime}{playersNeeded}{default} players voted, so not changing map!",
   "rtv.status": " {lightblue}[RTV] {default}Vote in progress - {lime}{playersVoted}{default} of {lime}{playersNeeded}{default} needed players voted for changing the map!",
-  "rtv.statusHint": " {lightblue}[RTV] {default}Type in {lime}!rtv{default} to vote. Remember to {lime}!nominate{default} maps for the map vote!"
+  "rtv.statusHint": " {lightblue}[RTV] {default}Type in {lime}!rtv{default} to vote. Remember to {lime}!nominate{default} maps for the map vote!",
+  "rtv.anotherVoteRunning": " {lightblue}[RTV] {default}Another vote is running already!"
 }
