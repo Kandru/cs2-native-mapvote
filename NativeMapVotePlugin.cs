@@ -114,8 +114,8 @@ public class NativeMapVotePlugin : BasePlugin, IPluginConfig<PluginConfig>
         AddCommand("css_cl", "Starts a callvote to change the map to a specific map", OnCallVoteCommand);
         AddCommand("css_map", "Starts a callvote to change the map to a specific map", OnCallVoteCommand);
         AddCommand("css_level", "Starts a callvote to change the map to a specific map", OnCallVoteCommand);
-        AddCommand("css_rtv", "Starts a vote to end the match immediately, consequently starting a map vote", _rtvChatVote.SubmitVote);
-        AddCommand("css_skip", "Starts a vote to end the match immediately, consequently starting a map vote", _rtvChatVote.SubmitVote);
+        AddCommand("css_rtv", "Starts a vote to end the match immediately, consequently starting a map vote", OnRtvCommand);
+        AddCommand("css_skip", "Starts a vote to end the match immediately, consequently starting a map vote", OnRtvCommand);
 
         _callVoteChatVote.OnVoteSucceeded += OnCallVoteVoteSucceeded;
         _rtvChatVote.OnVoteSucceeded += OnRtvVoteSucceeded;
@@ -321,6 +321,16 @@ public class NativeMapVotePlugin : BasePlugin, IPluginConfig<PluginConfig>
         }
         
         MenuManager.OpenChatMenu(player, menu);
+    }
+    
+    private void OnRtvCommand(CCSPlayerController? player, CommandInfo info)
+    {
+        if (info.ArgCount > 1)
+        {
+            OnNominateCommand(player, info);
+        }
+        
+        _rtvChatVote.SubmitVote(player, info);
     }
     
     private void OnCallVoteVoteSucceeded()
