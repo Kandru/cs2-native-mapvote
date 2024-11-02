@@ -47,8 +47,6 @@ public class NativeMapVotePlugin : BasePlugin, IPluginConfig<PluginConfig>
     public override string ModuleName => "Native Map Vote Plugin";
     public override string ModuleAuthor => "Jon-Mailes Graeffe <mail@jonni.it>";
     public override string ModuleVersion => "1.0.2";
-    public ChatMenu? NominationMenuAllMaps;
-    public ChatMenu? CallVoteMenuAllMaps;
     
     public PluginConfig Config { get; set; } = null!;
 
@@ -58,6 +56,8 @@ public class NativeMapVotePlugin : BasePlugin, IPluginConfig<PluginConfig>
     private string? _mapNextRound;
     private readonly ChatVote _callVoteChatVote;
     private readonly ChatVote _rtvChatVote;
+    private ChatMenu? _nominationMenuAllMaps;
+    private ChatMenu? _callVoteMenuAllMaps;
 
     public NativeMapVotePlugin()
     {
@@ -162,8 +162,8 @@ public class NativeMapVotePlugin : BasePlugin, IPluginConfig<PluginConfig>
                 return;
             }
 
-            if (NominationMenuAllMaps == null) return;
-            MenuManager.OpenChatMenu(player, NominationMenuAllMaps);
+            if (_nominationMenuAllMaps == null) return;
+            MenuManager.OpenChatMenu(player, _nominationMenuAllMaps);
             return;
         }
         
@@ -271,8 +271,8 @@ public class NativeMapVotePlugin : BasePlugin, IPluginConfig<PluginConfig>
                 return;
             }
 
-            if (CallVoteMenuAllMaps == null) return;
-            MenuManager.OpenChatMenu(player, CallVoteMenuAllMaps);
+            if (_callVoteMenuAllMaps == null) return;
+            MenuManager.OpenChatMenu(player, _callVoteMenuAllMaps);
             return;
         }
         
@@ -407,8 +407,8 @@ public class NativeMapVotePlugin : BasePlugin, IPluginConfig<PluginConfig>
                 StartCallVote(mapName, player, null);
             });
         }
-        NominationMenuAllMaps = nominateMenu;
-        CallVoteMenuAllMaps = callVoteMenu;
+        _nominationMenuAllMaps = nominateMenu;
+        _callVoteMenuAllMaps = callVoteMenu;
     }
     
     private void FetchMapGroupOverRcon()
