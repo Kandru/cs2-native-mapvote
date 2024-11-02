@@ -107,15 +107,15 @@ public class NativeMapVotePlugin : BasePlugin, IPluginConfig<PluginConfig>
         AddCommand("css_nominate", "Nominates a map so that it appears in the map vote after the match ends", OnNominateCommand);
         AddCommand("css_noms", "Shows the current nominated maps that will appear in the map vote after the match ends", OnNominationsCommand);
         AddCommand("css_nominations", "Shows the current nominated maps that will appear in the map vote after the match ends", OnNominationsCommand);
-        AddCommand("css_vote", "Starts a callvote to change the map to a specific map", OnCallVoteCommand);
-        AddCommand("css_callvote", "Starts a callvote to change the map to a specific map", OnCallVoteCommand);
-        AddCommand("css_cv", "Starts a callvote to change the map to a specific map", OnCallVoteCommand);
-        AddCommand("css_changelevel", "Starts a callvote to change the map to a specific map", OnCallVoteCommand);
-        AddCommand("css_cl", "Starts a callvote to change the map to a specific map", OnCallVoteCommand);
-        AddCommand("css_map", "Starts a callvote to change the map to a specific map", OnCallVoteCommand);
-        AddCommand("css_level", "Starts a callvote to change the map to a specific map", OnCallVoteCommand);
-        AddCommand("css_rtv", "Starts a vote to end the match immediately, consequently starting a map vote", OnRtvCommand);
-        AddCommand("css_skip", "Starts a vote to end the match immediately, consequently starting a map vote", OnRtvCommand);
+        AddCommand("css_vote", "Starts a callvote to change the map to a specific map after round end", OnCallVoteCommand);
+        AddCommand("css_callvote", "Starts a callvote to change the map to a specific map ater round end", OnCallVoteCommand);
+        AddCommand("css_cv", "Starts a callvote to change the map to a specific map after round end", OnCallVoteCommand);
+        AddCommand("css_changelevel", "Starts a callvote to change the map to a specific map after round end", OnCallVoteCommand);
+        AddCommand("css_cl", "Starts a callvote to change the map to a specific map after round end", OnCallVoteCommand);
+        AddCommand("css_map", "Starts a callvote to change the map to a specific map after round end", OnCallVoteCommand);
+        AddCommand("css_level", "Starts a callvote to change the map to a specific map after round end", OnCallVoteCommand);
+        AddCommand("css_rtv", "Starts a vote to end the match after round end, consequently starting a map vote", OnRtvCommand);
+        AddCommand("css_skip", "Starts a vote to end the match after round end, consequently starting a map vote", OnRtvCommand);
 
         _callVoteChatVote.OnVoteSucceeded += OnCallVoteVoteSucceeded;
         _rtvChatVote.OnVoteSucceeded += OnRtvVoteSucceeded;
