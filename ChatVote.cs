@@ -29,7 +29,7 @@ public class ChatVote(BasePlugin plugin)
     public delegate void VoteSucceededEventHandler();
     public delegate void VoteFailedEventHandler();
     
-    private static bool _voteRunning;
+    private static bool _anotherVoteRunning;
     
     public int Duration; // seconds
     public int Cooldown; // seconds
@@ -39,24 +39,25 @@ public class ChatVote(BasePlugin plugin)
     public readonly ChatVoteLocalization Localizer = new();
     public event VoteSucceededEventHandler OnVoteSucceeded = delegate {};
     public event VoteFailedEventHandler OnVoteFailed = delegate {};
+    public bool Running { get; private set; }
     
     private readonly HashSet<SteamID?> _voters = new();
     private Timer? _notificationTimer;
     private DateTime? _lastVote;
 
-    public void SubmitVote(CCSPlayerController? player, CommandInfo info)
+    public void SubmitVote(CCSPlayerController? player, CommandInfo? info)
     {
         // if vote not yet started, we need to start it first
         // then, if starting fails, we can't proceed
-        if (!_voters.Any() && !StartVote(player, info)) return;
+        if (!Running && !StartVote(player, info)) return;
         
         // try to add vote
         bool alreadyVoted = !_voters.Add(player != null ? player.AuthorizedSteamID : null);
         
-        // if cannot add vote, vote already submitted
+        // if we cannot add vote, vote already submitted
         if (alreadyVoted)
         {
-            info.ReplyToCommand(Localizer.AlreadyVoted);
+            Reply(player, info, Localizer.AlreadyVoted);
             return;
         }
         
@@ -68,12 +69,12 @@ public class ChatVote(BasePlugin plugin)
             _lastVote = DateTime.MaxValue;
             
             StopVote();
-            info.ReplyToCommand(Localizer.VoteSucceeded);
+            Reply(player, info, Localizer.VoteSucceeded);
             OnVoteSucceeded.Invoke();
             return;
         }
         
-        info.ReplyToCommand(Localizer.VotedSuccessfully);
+        Reply(player, info, Localizer.VotedSuccessfully);
     }
 
     public void Reset()
@@ -84,19 +85,19 @@ public class ChatVote(BasePlugin plugin)
         _lastVote = null;
     }
     
-    private bool StartVote(CCSPlayerController? player, CommandInfo info)
+    private bool StartVote(CCSPlayerController? player, CommandInfo? info)
     {
         // if vote succeeded already
         if (_lastVote == DateTime.MaxValue)
         {
-            info.ReplyToCommand(Localizer.VoteAlreadySucceeded);
+            Reply(player, info, Localizer.VoteAlreadySucceeded);
             return false;
         }
         
         // if another vote is running
-        if (_voteRunning)
+        if (_anotherVoteRunning)
         {
-            info.ReplyToCommand(Localizer.AnotherVoteRunning);
+            Reply(player, info, Localizer.AnotherVoteRunning);
             return false;
         }
         
@@ -106,14 +107,15 @@ public class ChatVote(BasePlugin plugin)
             var secondsSinceLastVote = (DateTime.Now - _lastVote).Value.TotalSeconds;
             if (secondsSinceLastVote < Cooldown)
             {
-                info.ReplyToCommand(Localizer.ActiveCooldown);
+                Reply(player, info, Localizer.ActiveCooldown);
                 return false;
             }
         }
         
         // update state
         _lastVote = DateTime.Now;
-        _voteRunning = true;
+        _anotherVoteRunning = true;
+        Running = true;
         
         // start notification loop that will also check if the vote ends
         _notificationTimer = plugin.AddTimer(NotificationInterval, SendNotification,
@@ -138,6 +140,8 @@ public class ChatVote(BasePlugin plugin)
     {
         _notificationTimer?.Kill();
         _voters.Clear();
+        _anotherVoteRunning = false;
+        Running = false;
     }
 
     private int CountPlayers()
@@ -145,7 +149,7 @@ public class ChatVote(BasePlugin plugin)
         int count = 0;
         foreach (var player in Utilities.GetPlayers())
         {
-            if (!player.IsBot && !player.IsHLTV && (AllowSpectators || player.Team != CsTeam.Spectator))
+            if (player is { IsBot: false, IsHLTV: false } && (AllowSpectators || player.Team != CsTeam.Spectator))
                 ++count;
         }
 
@@ -184,5 +188,22 @@ public class ChatVote(BasePlugin plugin)
             Server.PrintToChatAll(Localizer.NotificationHint);
             Server.PrintToConsole(Localizer.NotificationHint);            
         }
+    }
+
+    private void Reply(CCSPlayerController? player, CommandInfo? info, string message)
+    {
+        if (info != null)
+        {
+            info.ReplyToCommand(message);
+            return;
+        }
+
+        if (player != null)
+        {
+            player.PrintToChat(message);
+            return;
+        }
+        
+        Server.PrintToConsole(message);
     }
 }

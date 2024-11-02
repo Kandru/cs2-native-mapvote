@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using System.Globalization;
 using System.Text.Json.Serialization;
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
@@ -7,7 +6,6 @@ using CounterStrikeSharp.API.Modules.Commands;
 using CounterStrikeSharp.API.Modules.Cvars;
 using CounterStrikeSharp.API.Modules.Entities;
 using CounterStrikeSharp.API.Modules.Menu;
-using CounterStrikeSharp.API.Modules.Utils;
 using RconSharp;
 
 namespace NativeMapVotePlugin;
@@ -18,9 +16,22 @@ public class PluginConfig : BasePluginConfig
     public bool FetchMapGroupOverRcon { get; set; } = false;
     [JsonPropertyName("rcon_port")] public int RconPort { get; set; } = 27015;
     [JsonPropertyName("maps")] public ImmutableList<string> Maps { get; set; } = ImmutableList<string>.Empty;
-    [JsonPropertyName("callvote_enabled")] public bool CallVoteEnabled { get; set; } = true;
+    
+    [JsonPropertyName("callvote_enabled")]
+    public bool CallVoteEnabled { get; set; } = true;
+    [JsonPropertyName("callvote_duration")]
+    public int CallVoteDuration { get; set; } = 60;
     [JsonPropertyName("callvote_cooldown")]
     public int CallVoteCooldown { get; set; } = 120;
+    [JsonPropertyName("callvote_percentage")]
+    public double CallVotePercentage { get; set; } = 0.6;
+    [JsonPropertyName("callvote_message_interval")]
+    public int CallVoteMessageInterval { get; set; } = 15;
+    [JsonPropertyName("callvote_changemap_command")]
+    public string CallVoteChangeMapCommand { get; set; } = "tv_stoprecord; map {map}";
+    [JsonPropertyName("callvote_changemap_command_workshop")]
+    public string CallVoteChangeMapCommandWorkshop { get; set; } = "tv_stoprecord; ds_workshop_changelevel {map}";
+    
     [JsonPropertyName("rtv_cooldown")]
     public int RtvCooldown { get; set; } = 240;
     [JsonPropertyName("rtv_percentage")] public double RtvPercentage { get; set; } = 0.6;
@@ -43,11 +54,14 @@ public class NativeMapVotePlugin : BasePlugin, IPluginConfig<PluginConfig>
 
     private readonly HashSet<string> _nominatedMapNames = new();
     private readonly Dictionary<SteamID, string> _playerNominations = new();
-    private DateTime? _lastCallVote;
+    private string _callVoteMap = "";
+    private string? _mapNextRound;
+    private readonly ChatVote _callVoteChatVote;
     private readonly ChatVote _rtvChatVote;
 
     public NativeMapVotePlugin()
     {
+        _callVoteChatVote = new(this);
         _rtvChatVote = new(this);
     }
     
@@ -57,6 +71,14 @@ public class NativeMapVotePlugin : BasePlugin, IPluginConfig<PluginConfig>
         if (Config.FetchMapGroupOverRcon) FetchMapGroupOverRcon();
         else OnMapGroupChange();
 
+        _callVoteChatVote.Duration = config.CallVoteDuration;
+        _callVoteChatVote.Cooldown = config.CallVoteCooldown;
+        _callVoteChatVote.Percentage = config.CallVotePercentage;
+        _callVoteChatVote.NotificationInterval = config.CallVoteMessageInterval;
+        _callVoteChatVote.AllowSpectators = false;
+        _callVoteChatVote.Localizer.AnotherVoteRunning = Localizer["callVotes.anotherVoteRunning"];
+        _callVoteChatVote.Localizer.ActiveCooldown = Localizer["callVotes.activeCooldown"];
+        
         _rtvChatVote.Duration = config.RtvDuration;
         _rtvChatVote.Cooldown = config.RtvCooldown;
         _rtvChatVote.Percentage = config.RtvPercentage;
@@ -79,6 +101,7 @@ public class NativeMapVotePlugin : BasePlugin, IPluginConfig<PluginConfig>
     {
         RegisterListener<Listeners.OnMapStart>(OnMapStart);
         RegisterEventHandler<EventCsIntermission>(OnIntermission, HookMode.Pre);
+        RegisterEventHandler<EventRoundEnd>(OnRoundEnd);
 
         AddCommand("css_nom", "Nominates a map so that it appears in the map vote after the match ends", OnNominateCommand);
         AddCommand("css_nominate", "Nominates a map so that it appears in the map vote after the match ends", OnNominateCommand);
@@ -89,11 +112,12 @@ public class NativeMapVotePlugin : BasePlugin, IPluginConfig<PluginConfig>
         AddCommand("css_cv", "Starts a callvote to change the map to a specific map", OnCallVoteCommand);
         AddCommand("css_changelevel", "Starts a callvote to change the map to a specific map", OnCallVoteCommand);
         AddCommand("css_cl", "Starts a callvote to change the map to a specific map", OnCallVoteCommand);
-        //AddCommand("css_map", "Starts a callvote to change the map to a specific map", OnCallVoteCommand);
-        //AddCommand("css_level", "Starts a callvote to change the map to a specific map", OnCallVoteCommand);
-        AddCommand("css_rtv", "Starts a vote to end the match immediately, consequently starting a map vote", OnRtvCommand);
-        AddCommand("css_skip", "Starts a vote to end the match immediately, consequently starting a map vote", OnRtvCommand);
-    
+        AddCommand("css_map", "Starts a callvote to change the map to a specific map", OnCallVoteCommand);
+        AddCommand("css_level", "Starts a callvote to change the map to a specific map", OnCallVoteCommand);
+        AddCommand("css_rtv", "Starts a vote to end the match immediately, consequently starting a map vote", _rtvChatVote.SubmitVote);
+        AddCommand("css_skip", "Starts a vote to end the match immediately, consequently starting a map vote", _rtvChatVote.SubmitVote);
+
+        _callVoteChatVote.OnVoteSucceeded += OnCallVoteVoteSucceeded;
         _rtvChatVote.OnVoteSucceeded += OnRtvVoteSucceeded;
         
         Reset();
@@ -108,6 +132,16 @@ public class NativeMapVotePlugin : BasePlugin, IPluginConfig<PluginConfig>
     {
         UpdateEndMatchGroupVoteOptions();
         Reset();
+        return HookResult.Continue;
+    }
+    
+    private HookResult OnRoundEnd(EventRoundEnd @event, GameEventInfo info)
+    {
+        if (_mapNextRound == null) return HookResult.Continue;
+        Server.ExecuteCommand(IsNativeMap(_mapNextRound)
+            ? Config.CallVoteChangeMapCommand.Replace("{map}", _mapNextRound)
+            : Config.CallVoteChangeMapCommandWorkshop.Replace("{map}", _mapNextRound));
+        _mapNextRound = null;
         return HookResult.Continue;
     }
 
@@ -221,17 +255,11 @@ public class NativeMapVotePlugin : BasePlugin, IPluginConfig<PluginConfig>
             info.ReplyToCommand(Localizer["callVotes.disabledEmptyMapgroup"]);
             return;
         }
-        
-        // cooldown check
-        if (_lastCallVote != null)
+
+        if (_callVoteChatVote.Running || _mapNextRound != null)
         {
-            var secondsSinceLastCallvote = (DateTime.Now - _lastCallVote).Value.TotalSeconds;
-            if (secondsSinceLastCallvote < Config.CallVoteCooldown)
-            {
-                info.ReplyToCommand(Localizer["callVotes.activeCooldown"].Value.Replace("{seconds}",
-                    double.Ceiling(Config.CallVoteCooldown - secondsSinceLastCallvote).ToString(CultureInfo.CurrentCulture)));
-                return;
-            }
+            _callVoteChatVote.SubmitVote(player, info);
+            return;
         }
         
         // if no argument was given, we can't possibly know what the user wants - give him all the options then
@@ -252,7 +280,7 @@ public class NativeMapVotePlugin : BasePlugin, IPluginConfig<PluginConfig>
         var query = info.GetArg(1);
         if (Config.Maps.Contains(query))
         {
-            CallVote(query, player);
+            StartCallVote(query, player, info);
             return;
         }
         
@@ -263,7 +291,7 @@ public class NativeMapVotePlugin : BasePlugin, IPluginConfig<PluginConfig>
             {
                 menu.AddMenuOption(mapName, (_, _) =>
                 {
-                    CallVote(mapName, player);
+                    StartCallVote(mapName, player, info);
                 });
             }
         }
@@ -277,7 +305,7 @@ public class NativeMapVotePlugin : BasePlugin, IPluginConfig<PluginConfig>
         // yay, shortcut time
         if (menu.MenuOptions.Count == 1)
         {
-            CallVote(menu.MenuOptions[0].Text, player);
+            StartCallVote(menu.MenuOptions[0].Text, player, info);
             return;
         }
         
@@ -293,6 +321,11 @@ public class NativeMapVotePlugin : BasePlugin, IPluginConfig<PluginConfig>
         }
         
         MenuManager.OpenChatMenu(player, menu);
+    }
+    
+    private void OnCallVoteVoteSucceeded()
+    {
+        _mapNextRound = _callVoteMap;
     }
     
     private void OnRtvVoteSucceeded()
@@ -343,36 +376,20 @@ public class NativeMapVotePlugin : BasePlugin, IPluginConfig<PluginConfig>
         }
     }
 
-    private int GetPlayingPlayerCount()
+    private void StartCallVote(string mapName, CCSPlayerController? player, CommandInfo? info)
     {
-        int count = 0;
-        foreach (var player in Utilities.GetPlayers())
-        {
-            if (!player.IsBot && player.Team != CsTeam.Spectator && !player.IsHLTV)
-                ++count;
-        }
-
-        return count;
-    }
-   
-    private void CallVote(string mapName, CCSPlayerController? player)
-    {
-        Server.ExecuteCommand($"callvote changelevel {mapName}");
-        _lastCallVote = DateTime.Now;
+        _callVoteMap = mapName;
         
-        if (player != null)
-        {
-            var reply = Localizer["callVotes.voteStartedByPlayer"].Value.Replace("{player}", player.PlayerName)
-                .Replace("{map}", mapName);
-            Server.PrintToChatAll(reply);
-            Server.PrintToConsole(reply);
-        }
-        else
-        {
-            var reply = Localizer["callVotes.voteStartedByUnknownEntity"].Value.Replace("{map}", mapName);
-            Server.PrintToChatAll(reply);
-            Server.PrintToConsole(reply);
-        }
+        _callVoteChatVote.Localizer.AlreadyVoted = Localizer["callVotes.alreadyVoted"].Value.Replace("{map}", mapName);
+        _callVoteChatVote.Localizer.VotedSuccessfully = Localizer["callVotes.votedSuccessfully"].Value.Replace("{map}", mapName);
+        _callVoteChatVote.Localizer.VoteSucceeded = Localizer["callVotes.voteSucceeded"].Value.Replace("{map}", mapName);
+        _callVoteChatVote.Localizer.VoteFailed = Localizer["callVotes.voteFailed"].Value.Replace("{map}", mapName);
+        _callVoteChatVote.Localizer.VoteAlreadySucceeded = Localizer["callVotes.alreadySucceeded"].Value.Replace("{map}", mapName);
+        _callVoteChatVote.Localizer.VoteStartedByPlayer = Localizer["callVotes.voteStartedByPlayer"].Value.Replace("{map}", mapName);
+        _callVoteChatVote.Localizer.VoteStartedByUnknownEntity = Localizer["callVotes.voteStartedByUnknownEntity"].Value.Replace("{map}", mapName);
+        _callVoteChatVote.Localizer.Notification = Localizer["callVotes.status"].Value.Replace("{map}", mapName);
+        _callVoteChatVote.Localizer.NotificationHint = Localizer["callVotes.statusHint"].Value.Replace("{map}", mapName);
+        _callVoteChatVote.SubmitVote(player, info);
     }
     
     private void OnMapGroupChange()
@@ -387,7 +404,7 @@ public class NativeMapVotePlugin : BasePlugin, IPluginConfig<PluginConfig>
             });
             callVoteMenu.AddMenuOption(mapName, (player, _) =>
             {
-                CallVote(mapName, player);
+                StartCallVote(mapName, player, null);
             });
         }
         NominationMenuAllMaps = nominateMenu;
@@ -494,7 +511,18 @@ public class NativeMapVotePlugin : BasePlugin, IPluginConfig<PluginConfig>
     {
         _nominatedMapNames.Clear();
         _playerNominations.Clear();
-        _lastCallVote = null;
+        _callVoteChatVote.Reset();
         _rtvChatVote.Reset();
+        _mapNextRound = null;
+    }
+
+    private bool IsNativeMap(string mapName)
+    {
+        string[] files = Directory.GetFiles(Server.GameDirectory + "/csgo/maps");
+        foreach (string file in files)
+        {
+            if (Path.GetFileNameWithoutExtension(file) == mapName) return true;
+        }
+        return false;
     }
 }
