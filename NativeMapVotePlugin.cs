@@ -127,6 +127,7 @@ public partial class NativeMapVotePlugin : BasePlugin, IPluginConfig<PluginConfi
     private void OnMapStart(string mapName)
     {
         if (Config.FetchMapGroupOverRcon) FetchMapGroupOverRcon();
+        Reset();
     }
     
     private HookResult OnIntermission(EventCsIntermission @eventCsIntermission, GameEventInfo info)
