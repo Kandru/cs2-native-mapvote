@@ -22,6 +22,7 @@ public class ChatVoteLocalization
     public string VoteStartedByUnknownEntity = "VOTE_STARTED_BY_UNKNOWN_ENTITY";
     public string Notification = "NOTIFICATION";
     public string? NotificationHint = "NOTIFICATION_HINT"; // optional second chat message after notification
+    public string SpectatorsNotAllowed = "SPECTATORS_NOT_ALLOWED";
 }
 
 public class ChatVote(BasePlugin plugin)
@@ -47,6 +48,12 @@ public class ChatVote(BasePlugin plugin)
 
     public void SubmitVote(CCSPlayerController? player, CommandInfo? info)
     {
+        if (player != null && player.Team == CsTeam.Spectator)
+        {
+            Reply(player, info, Localizer.SpectatorsNotAllowed);
+            return;
+        }
+        
         // if vote not yet started, we need to start it first
         // then, if starting fails, we can't proceed
         if (!Running && !StartVote(player, info)) return;

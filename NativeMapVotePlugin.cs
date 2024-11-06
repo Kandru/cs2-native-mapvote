@@ -18,6 +18,8 @@ public class PluginConfig : BasePluginConfig
     
     [JsonPropertyName("callvote_enabled")]
     public bool CallVoteEnabled { get; set; } = true;
+    [JsonPropertyName("callvote_allow_spectators")]
+    public bool CallVoteAllowSpectators { get; set; } = true;
     [JsonPropertyName("callvote_duration")]
     public int CallVoteDuration { get; set; } = 60;
     [JsonPropertyName("callvote_cooldown")]
@@ -31,6 +33,8 @@ public class PluginConfig : BasePluginConfig
     [JsonPropertyName("callvote_changemap_command_workshop")]
     public string CallVoteChangeMapCommandWorkshop { get; set; } = "tv_stoprecord; ds_workshop_changelevel {map}";
     
+    [JsonPropertyName("rtv_allow_spectators")]
+    public bool RtvAllowSpectators { get; set; } = true;
     [JsonPropertyName("rtv_cooldown")]
     public int RtvCooldown { get; set; } = 240;
     [JsonPropertyName("rtv_percentage")]
@@ -70,15 +74,16 @@ public partial class NativeMapVotePlugin : BasePlugin, IPluginConfig<PluginConfi
         _callVoteChatVote.Cooldown = config.CallVoteCooldown;
         _callVoteChatVote.Percentage = config.CallVotePercentage;
         _callVoteChatVote.NotificationInterval = config.CallVoteMessageInterval;
-        _callVoteChatVote.AllowSpectators = false;
+        _callVoteChatVote.AllowSpectators = config.CallVoteAllowSpectators;
         _callVoteChatVote.Localizer.AnotherVoteRunning = Localizer["callVotes.anotherVoteRunning"];
         _callVoteChatVote.Localizer.ActiveCooldown = Localizer["callVotes.activeCooldown"];
+        _callVoteChatVote.Localizer.SpectatorsNotAllowed = Localizer["callVotes.spectatorsNotAllowed"];
         
         _rtvChatVote.Duration = config.RtvDuration;
         _rtvChatVote.Cooldown = config.RtvCooldown;
         _rtvChatVote.Percentage = config.RtvPercentage;
         _rtvChatVote.NotificationInterval = config.RtvMessageInterval;
-        _rtvChatVote.AllowSpectators = false;
+        _rtvChatVote.AllowSpectators = config.RtvAllowSpectators;
         _rtvChatVote.Localizer.AlreadyVoted = Localizer["rtv.alreadyVoted"];
         _rtvChatVote.Localizer.VotedSuccessfully = Localizer["rtv.votedSuccessfully"];
         _rtvChatVote.Localizer.VoteSucceeded = Localizer["rtv.voteSucceeded"];
@@ -90,6 +95,7 @@ public partial class NativeMapVotePlugin : BasePlugin, IPluginConfig<PluginConfi
         _rtvChatVote.Localizer.VoteStartedByUnknownEntity = Localizer["rtv.voteStartedByUnknownEntity"];
         _rtvChatVote.Localizer.Notification = Localizer["rtv.status"];
         _rtvChatVote.Localizer.NotificationHint = Localizer["rtv.statusHint"];
+        _rtvChatVote.Localizer.SpectatorsNotAllowed = Localizer["rtv.spectatorsNotAllowed"];
     }
 
     public override void Load(bool hotReload)

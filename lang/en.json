@@ -28,6 +28,7 @@
   "callVotes.status": " {yellow}[CallVote] {default}Vote in progress - {lime}{playersVoted}{default} of {lime}{playersNeeded}{default} needed players voted for changing the map to {lime}{map}{default}!",
   "callVotes.statusHint": " {yellow}[CallVote] {default}Type in {lime}!cv{default} to vote for this map too!",
   "callVotes.anotherVoteRunning": " {yellow}[CallVote] {default}Another vote is running already!",
+  "callVotes.spectatorsNotAllowed": " {yellow}>> {default}Spectators cannot participate in call votes!",
 
   "rtv.activeCooldown": " {lightblue}>> {default}The next RTV can be started in {lime}{seconds}{default} seconds!",
   "rtv.voteStartedByPlayer": " {lightblue}[RTV] {default}Player {lime}{player}{default} started an RTV vote. Type in {lime}!rtv{default} if you want to change the map!",
@@ -39,5 +40,6 @@
   "rtv.voteFailed": " {lightblue}[RTV] {default}Vote failed. Only {lime}{playersVoted}{default} of {lime}{playersNeeded}{default} players voted, so not changing map!",
   "rtv.status": " {lightblue}[RTV] {default}Vote in progress - {lime}{playersVoted}{default} of {lime}{playersNeeded}{default} needed players voted for changing the map!",
   "rtv.statusHint": " {lightblue}[RTV] {default}Type in {lime}!rtv{default} to vote. Remember to {lime}!nominate{default} maps for the map vote!",
-  "rtv.anotherVoteRunning": " {lightblue}[RTV] {default}Another vote is running already!"
+  "rtv.anotherVoteRunning": " {lightblue}[RTV] {default}Another vote is running already!",
+  "rtv.spectatorsNotAllowed": " {lightblue}>> {default}Spectators cannot participate in RTV votes!"
 }
