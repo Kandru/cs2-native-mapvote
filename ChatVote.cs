@@ -76,7 +76,8 @@ public class ChatVote(BasePlugin plugin)
             _lastVote = DateTime.MaxValue;
             
             StopVote();
-            Reply(player, info, Localizer.VoteSucceeded);
+            Server.PrintToChatAll(Localizer.VoteSucceeded);
+            Server.PrintToConsole(Localizer.VoteSucceeded);
             OnVoteSucceeded.Invoke();
             return;
         }
