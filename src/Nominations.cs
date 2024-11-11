@@ -4,9 +4,9 @@ using CounterStrikeSharp.API.Modules.Commands;
 using CounterStrikeSharp.API.Modules.Entities;
 using CounterStrikeSharp.API.Modules.Menu;
 
-namespace NativeMapVotePlugin;
+namespace NativeMapVote;
 
-public partial class NativeMapVotePlugin
+public partial class NativeMapVote
 {
     private readonly HashSet<string> _nominatedMapNames = new();
     private readonly Dictionary<SteamID, string> _playerNominations = new();
@@ -162,7 +162,7 @@ public partial class NativeMapVotePlugin
     {
         if (Config.Maps.Count == 0)
         {
-            Console.WriteLine("[NativeMapVotePlugin][WARNING] No maps in map group, skipping vote manipulation!");
+            Console.WriteLine("[NativeMapVote][WARNING] No maps in map group, skipping vote manipulation!");
             return;
         }
         
@@ -170,7 +170,7 @@ public partial class NativeMapVotePlugin
         var proxy = proxies.FirstOrDefault();
         if (proxy == null || proxy.GameRules == null)
         {
-            Console.WriteLine("[NativeMapVotePlugin][ERROR] Could not find end match vote entity!");
+            Console.WriteLine("[NativeMapVote][ERROR] Could not find end match vote entity!");
             return;
         }
 
@@ -192,7 +192,7 @@ public partial class NativeMapVotePlugin
             
             if (alreadyAddedOptions.Count >= Config.Maps.Count) break;
         }
-        Console.WriteLine("[NativeMapVotePlugin][INFO] Successfully manipulated the vote (no scandal though)!");
+        Console.WriteLine("[NativeMapVote][INFO] Successfully manipulated the vote (no scandal though)!");
     }
 
     private void ResetNominations()

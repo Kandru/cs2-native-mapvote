@@ -5,7 +5,7 @@ using CounterStrikeSharp.API.Modules.Cvars;
 using CounterStrikeSharp.API.Modules.Menu;
 using RconSharp;
 
-namespace NativeMapVotePlugin;
+namespace NativeMapVote;
 
 public class PluginConfig : BasePluginConfig
 {
@@ -47,18 +47,17 @@ public class PluginConfig : BasePluginConfig
     public string RtvEndMatchCommand { get; set; } = "mp_halftime false; mp_maxrounds 1";
 }
 
-public partial class NativeMapVotePlugin : BasePlugin, IPluginConfig<PluginConfig>
+public partial class NativeMapVote : BasePlugin, IPluginConfig<PluginConfig>
 {
     public override string ModuleName => "Native Map Vote Plugin";
     public override string ModuleAuthor => "Jon-Mailes Graeffe <mail@jonni.it>";
-    public override string ModuleVersion => "1.0.2";
     
     public PluginConfig Config { get; set; } = null!;
 
     private ChatMenu? _nominationMenuAllMaps;
     private ChatMenu? _callVoteMenuAllMaps;
 
-    public NativeMapVotePlugin()
+    public NativeMapVote()
     {
         _callVoteChatVote = new(this);
         _rtvChatVote = new(this);
@@ -161,7 +160,7 @@ public partial class NativeMapVotePlugin : BasePlugin, IPluginConfig<PluginConfi
         var rconPasswordCvar = ConVar.Find("rcon_password");
         if (rconPasswordCvar == null || rconPasswordCvar.StringValue == null || rconPasswordCvar.StringValue.Length == 0)
         {
-            Console.WriteLine("[NativeMapVotePlugin][WARNING] Fetching map list over RCON disabled due to disabled RCON (cvar rcon_password not set)!");
+            Console.WriteLine("[NativeMapVote][WARNING] Fetching map list over RCON disabled due to disabled RCON (cvar rcon_password not set)!");
             return;
         }
         
@@ -174,7 +173,7 @@ public partial class NativeMapVotePlugin : BasePlugin, IPluginConfig<PluginConfi
             
             if (string.IsNullOrEmpty(output))
             {
-                Console.WriteLine("[NativeMapVotePlugin][WARNING] Fetching mapgroup over RCON failed!");
+                Console.WriteLine("[NativeMapVote][WARNING] Fetching mapgroup over RCON failed!");
                 return;
             }
 
@@ -185,7 +184,7 @@ public partial class NativeMapVotePlugin : BasePlugin, IPluginConfig<PluginConfi
                 if (line.Length == 0 || line.StartsWith("Map group:")) continue;
                 if (line.StartsWith("No maps"))
                 {
-                    Console.WriteLine("[NativeMapVotePlugin][WARNING] No maps in map group found - plugin will not work this map!");
+                    Console.WriteLine("[NativeMapVote][WARNING] No maps in map group found - plugin will not work this map!");
                     return;
                 }
 
@@ -195,7 +194,7 @@ public partial class NativeMapVotePlugin : BasePlugin, IPluginConfig<PluginConfi
 
             if (mapNames.Count == 0)
             {
-                Console.WriteLine("[NativeMapVotePlugin][ERROR] Could not parse map group over RCON!");
+                Console.WriteLine("[NativeMapVote][ERROR] Could not parse map group over RCON!");
                 return;
             }
             
@@ -203,7 +202,7 @@ public partial class NativeMapVotePlugin : BasePlugin, IPluginConfig<PluginConfi
             Config.Maps = Config.Maps.AddRange(mapNames);
             OnMapGroupChange();
             
-            Console.WriteLine("[NativeMapVotePlugin][INFO] Found " + Config.Maps.Count + " maps in map group, now used for voting!");
+            Console.WriteLine("[NativeMapVote][INFO] Found " + Config.Maps.Count + " maps in map group, now used for voting!");
         });
     }
 

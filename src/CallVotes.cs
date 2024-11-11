@@ -3,9 +3,9 @@ using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Commands;
 using CounterStrikeSharp.API.Modules.Menu;
 
-namespace NativeMapVotePlugin;
+namespace NativeMapVote;
 
-public partial class NativeMapVotePlugin
+public partial class NativeMapVote
 {
     private string _callVoteMap = "";
     private string? _mapNextRound;

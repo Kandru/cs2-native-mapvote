@@ -7,7 +7,7 @@ using CounterStrikeSharp.API.Modules.Timers;
 using CounterStrikeSharp.API.Modules.Utils;
 using Timer = CounterStrikeSharp.API.Modules.Timers.Timer;
 
-namespace NativeMapVotePlugin;
+namespace NativeMapVote;
 
 public class ChatVoteLocalization
 {

@@ -2,9 +2,9 @@ using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Commands;
 
-namespace NativeMapVotePlugin;
+namespace NativeMapVote;
 
-public partial class NativeMapVotePlugin
+public partial class NativeMapVote
 {
     private readonly ChatVote _rtvChatVote;
 
