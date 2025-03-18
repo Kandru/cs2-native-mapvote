@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System.Text.Json.Serialization;
+using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Cvars;
 using CounterStrikeSharp.API.Modules.Extensions;
@@ -140,8 +141,6 @@ public partial class NativeMapVote : BasePlugin, IPluginConfig<PluginConfig>
 
     private void OnMapStart(string mapName)
     {
-        // count map
-        CountMap(mapName);
         // fetch maps
         if (Config.FetchMapGroupOverRcon) FetchMapGroupOverRcon();
         Reset();
@@ -151,6 +150,8 @@ public partial class NativeMapVote : BasePlugin, IPluginConfig<PluginConfig>
 
     private HookResult OnIntermission(EventCsIntermission @eventCsIntermission, GameEventInfo info)
     {
+        // count map
+        if (Server.MapName != null && Server.MapName != "") CountMap(Server.MapName);
         UpdateEndMatchGroupVoteOptions();
         Reset();
         return HookResult.Continue;
