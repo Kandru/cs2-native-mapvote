@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using System.Text.Json.Serialization;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Cvars;
+using CounterStrikeSharp.API.Modules.Extensions;
 using CounterStrikeSharp.API.Modules.Menu;
 using RconSharp;
 
@@ -13,9 +14,11 @@ public class PluginConfig : BasePluginConfig
     public bool FetchMapGroupOverRcon { get; set; } = false;
     [JsonPropertyName("rcon_port")]
     public int RconPort { get; set; } = 27015;
+    [JsonPropertyName("workshop_maps")]
+    public ImmutableList<string> WorkshopMaps { get; set; } = ImmutableList<string>.Empty;
     [JsonPropertyName("maps")]
-    public ImmutableList<string> Maps { get; set; } = ImmutableList<string>.Empty;
-    
+    public Dictionary<string, int> Maps { get; set; } = new Dictionary<string, int>();
+
     [JsonPropertyName("callvote_enabled")]
     public bool CallVoteEnabled { get; set; } = true;
     [JsonPropertyName("callvote_allow_spectators")]
@@ -32,7 +35,7 @@ public class PluginConfig : BasePluginConfig
     public string CallVoteChangeMapCommand { get; set; } = "tv_stoprecord; map {map}";
     [JsonPropertyName("callvote_changemap_command_workshop")]
     public string CallVoteChangeMapCommandWorkshop { get; set; } = "tv_stoprecord; ds_workshop_changelevel {map}";
-    
+
     [JsonPropertyName("rtv_allow_spectators")]
     public bool RtvAllowSpectators { get; set; } = true;
     [JsonPropertyName("rtv_cooldown")]
@@ -45,13 +48,18 @@ public class PluginConfig : BasePluginConfig
     public int RtvDuration { get; set; } = 60;
     [JsonPropertyName("rtv_end_match_command")]
     public string RtvEndMatchCommand { get; set; } = "mp_halftime false; mp_maxrounds 1";
+
+    [JsonPropertyName("amount_top_maps_to_show")]
+    public int AmountTopMapsToShow { get; set; } = 5;
+    [JsonPropertyName("amount_newest_maps_to_show")]
+    public int AmountNewestMapsToShow { get; set; } = 5;
 }
 
 public partial class NativeMapVote : BasePlugin, IPluginConfig<PluginConfig>
 {
     public override string ModuleName => "Native Map Vote Plugin";
     public override string ModuleAuthor => "Jon-Mailes Graeffe <mail@jonni.it>";
-    
+
     public PluginConfig Config { get; set; } = null!;
 
     private ChatMenu? _nominationMenuAllMaps;
@@ -62,7 +70,7 @@ public partial class NativeMapVote : BasePlugin, IPluginConfig<PluginConfig>
         _callVoteChatVote = new(this);
         _rtvChatVote = new(this);
     }
-    
+
     public void OnConfigParsed(PluginConfig config)
     {
         Config = config;
@@ -77,7 +85,7 @@ public partial class NativeMapVote : BasePlugin, IPluginConfig<PluginConfig>
         _callVoteChatVote.Localizer.AnotherVoteRunning = Localizer["callVotes.anotherVoteRunning"];
         _callVoteChatVote.Localizer.ActiveCooldown = Localizer["callVotes.activeCooldown"];
         _callVoteChatVote.Localizer.SpectatorsNotAllowed = Localizer["callVotes.spectatorsNotAllowed"];
-        
+
         _rtvChatVote.Duration = config.RtvDuration;
         _rtvChatVote.Cooldown = config.RtvCooldown;
         _rtvChatVote.Percentage = config.RtvPercentage;
@@ -107,6 +115,7 @@ public partial class NativeMapVote : BasePlugin, IPluginConfig<PluginConfig>
         AddCommand("css_nominate", "Nominates a map so that it appears in the map vote after the match ends", OnNominateCommand);
         AddCommand("css_noms", "Shows the current nominated maps that will appear in the map vote after the match ends", OnNominationsCommand);
         AddCommand("css_nominations", "Shows the current nominated maps that will appear in the map vote after the match ends", OnNominationsCommand);
+        AddCommand("css_nextmapsbycount", "Shows the next maps that will be used by default", OnNextMapsByCountCommand);
         AddCommand("css_vote", "Starts a callvote to change the map to a specific map after round end", OnCallVoteCommand);
         AddCommand("css_callvote", "Starts a callvote to change the map to a specific map ater round end", OnCallVoteCommand);
         AddCommand("css_cv", "Starts a callvote to change the map to a specific map after round end", OnCallVoteCommand);
@@ -119,16 +128,27 @@ public partial class NativeMapVote : BasePlugin, IPluginConfig<PluginConfig>
 
         _callVoteChatVote.OnVoteSucceeded += OnCallVoteVoteSucceeded;
         _rtvChatVote.OnVoteSucceeded += OnRtvVoteSucceeded;
-        
+
         Reset();
+    }
+
+    public override void Unload(bool hotReload)
+    {
+        // save config
+        Config.Update();
     }
 
     private void OnMapStart(string mapName)
     {
+        // count map
+        CountMap(mapName);
+        // fetch maps
         if (Config.FetchMapGroupOverRcon) FetchMapGroupOverRcon();
         Reset();
+        // save config
+        Config.Update();
     }
-    
+
     private HookResult OnIntermission(EventCsIntermission @eventCsIntermission, GameEventInfo info)
     {
         UpdateEndMatchGroupVoteOptions();
@@ -140,7 +160,7 @@ public partial class NativeMapVote : BasePlugin, IPluginConfig<PluginConfig>
     {
         var nominateMenu = new ChatMenu(Localizer["nominations.chatMenuTitle"]);
         var callVoteMenu = new ChatMenu(Localizer["callVotes.chatMenuTitle"]);
-        foreach (var mapName in Config.Maps)
+        foreach (var mapName in Config.WorkshopMaps)
         {
             nominateMenu.AddMenuOption(mapName, (player, _) =>
             {
@@ -154,7 +174,7 @@ public partial class NativeMapVote : BasePlugin, IPluginConfig<PluginConfig>
         _nominationMenuAllMaps = nominateMenu;
         _callVoteMenuAllMaps = callVoteMenu;
     }
-    
+
     private void FetchMapGroupOverRcon()
     {
         var rconPasswordCvar = ConVar.Find("rcon_password");
@@ -163,14 +183,15 @@ public partial class NativeMapVote : BasePlugin, IPluginConfig<PluginConfig>
             Console.WriteLine("[NativeMapVote][WARNING] Fetching map list over RCON disabled due to disabled RCON (cvar rcon_password not set)!");
             return;
         }
-        
-        Task.Run(async () => {
+
+        Task.Run(async () =>
+        {
             var client = RconClient.Create("127.0.0.1", Config.RconPort);
             await client.ConnectAsync();
             await client.AuthenticateAsync(rconPasswordCvar.StringValue);
             var output = await client.ExecuteCommandAsync("print_mapgroup_sv");
             client.Disconnect();
-            
+
             if (string.IsNullOrEmpty(output))
             {
                 Console.WriteLine("[NativeMapVote][WARNING] Fetching mapgroup over RCON failed!");
@@ -197,12 +218,24 @@ public partial class NativeMapVote : BasePlugin, IPluginConfig<PluginConfig>
                 Console.WriteLine("[NativeMapVote][ERROR] Could not parse map group over RCON!");
                 return;
             }
-            
-            Config.Maps = ImmutableList<string>.Empty;
-            Config.Maps = Config.Maps.AddRange(mapNames);
+            // remove maps from Config.Maps that are not in map group anymore
+            var mapNamesLower = mapNames.Select(x => x.ToLower()).ToList();
+            var mapsToRemove = Config.Maps.Where(x => !mapNamesLower.Contains(x.Key.ToLower())).ToList();
+            foreach (var mapToRemove in mapsToRemove)
+            {
+                Config.Maps.Remove(mapToRemove.Key);
+            }
+            // add maps to Config.Maps that are in map group but not in Config.Maps
+            foreach (var mapName in mapNames)
+            {
+                if (!Config.Maps.ContainsKey(mapName))
+                    Config.Maps[mapName] = 0;
+            }
+            Config.WorkshopMaps = ImmutableList<string>.Empty;
+            Config.WorkshopMaps = Config.WorkshopMaps.AddRange(mapNames);
             OnMapGroupChange();
-            
-            Console.WriteLine("[NativeMapVote][INFO] Found " + Config.Maps.Count + " maps in map group, now used for voting!");
+
+            Console.WriteLine("[NativeMapVote][INFO] Found " + Config.WorkshopMaps.Count + " maps in map group, now used for voting!");
         });
     }
 

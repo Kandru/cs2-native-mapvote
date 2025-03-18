@@ -10,10 +10,10 @@ public partial class NativeMapVote
 {
     private readonly HashSet<string> _nominatedMapNames = new();
     private readonly Dictionary<SteamID, string> _playerNominations = new();
-    
+
     private void OnNominateCommand(CCSPlayerController? player, CommandInfo info)
     {
-        if (Config.Maps.Count == 0)
+        if (Config.WorkshopMaps.Count == 0)
         {
             info.ReplyToCommand(Localizer["nominations.disabledEmptyMapgroup"]);
             return;
@@ -35,14 +35,14 @@ public partial class NativeMapVote
 
         // if the exact map name was given, we can use a shortcut
         var query = info.GetArg(1);
-        if (Config.Maps.Contains(query))
+        if (Config.WorkshopMaps.Contains(query))
         {
             Nominate(query, player, info);
             return;
         }
 
         var menu = new ChatMenu(Localizer["nominations.chatMenuTitle"]);
-        foreach (var mapName in Config.Maps)
+        foreach (var mapName in Config.WorkshopMaps)
         {
             if (mapName.StartsWith(query) || mapName.Contains(query))
             {
@@ -87,7 +87,7 @@ public partial class NativeMapVote
             Server.PrintToConsole(Localizer["nominations.noNominationsYet"]);
             return;
         }
-        
+
         var reply = Localizer["nominations.nominationListPrefix"] + _nominatedMapNames.First();
         if (_nominatedMapNames.Count > 1)
         {
@@ -117,7 +117,7 @@ public partial class NativeMapVote
                     .Replace("{map}", mapName);
                 Server.PrintToChatAll(reply);
                 Server.PrintToConsole(reply);
-                
+
                 // check if this player nominated a map already and denominate it
                 if (player.AuthorizedSteamID != null)
                 {
@@ -127,7 +127,7 @@ public partial class NativeMapVote
                             .Replace("map", _playerNominations[player.AuthorizedSteamID]);
                         if (info != null) info.ReplyToCommand(reply);
                         else player.PrintToChat(reply);
-                        
+
                         _playerNominations[player.AuthorizedSteamID] = mapName;
                         _nominatedMapNames.Remove(mapName);
                     }
@@ -153,19 +153,19 @@ public partial class NativeMapVote
     private int PickPseudoRandomMapIndex(ref List<int> exceptThoseMaps)
     {
         int i;
-        do i = Random.Shared.Next(Config.Maps.Count);
+        do i = Random.Shared.Next(Config.WorkshopMaps.Count);
         while (exceptThoseMaps.Contains(i));
         return i;
     }
 
     private void UpdateEndMatchGroupVoteOptions()
     {
-        if (Config.Maps.Count == 0)
+        if (Config.WorkshopMaps.Count == 0)
         {
             Console.WriteLine("[NativeMapVote][WARNING] No maps in map group, skipping vote manipulation!");
             return;
         }
-        
+
         var proxies = Utilities.FindAllEntitiesByDesignerName<CCSGameRulesProxy>("cs_gamerules");
         var proxy = proxies.FirstOrDefault();
         if (proxy == null || proxy.GameRules == null)
@@ -174,23 +174,34 @@ public partial class NativeMapVote
             return;
         }
 
+        // fill in _nominatedMapNames with GetAllMaps() until Config.AmountTopMapsToShow + Config.AmountNewestMapsToShow is reached
+        if (_nominatedMapNames.Count < Config.AmountTopMapsToShow + Config.AmountNewestMapsToShow)
+        {
+            var allMaps = GetAllMaps(Config.AmountTopMapsToShow + Config.AmountNewestMapsToShow);
+            foreach (var mapName in allMaps)
+            {
+                if (_nominatedMapNames.Count >= Config.AmountTopMapsToShow + Config.AmountNewestMapsToShow) break;
+                _nominatedMapNames.Add(mapName);
+            }
+        }
+
         List<int> alreadyAddedOptions = new List<int>();
         foreach (ref var option in proxy.GameRules.EndMatchMapGroupVoteOptions)
         {
             var mapName = _nominatedMapNames.FirstOrDefault();
             if (mapName != null)
             {
-                option = Config.Maps.IndexOf(mapName);
+                option = Config.WorkshopMaps.IndexOf(mapName);
                 _nominatedMapNames.Remove(mapName);
             }
             else
             {
                 option = PickPseudoRandomMapIndex(ref alreadyAddedOptions);
             }
-            
+
             alreadyAddedOptions.Add(option);
-            
-            if (alreadyAddedOptions.Count >= Config.Maps.Count) break;
+
+            if (alreadyAddedOptions.Count >= Config.WorkshopMaps.Count) break;
         }
         Console.WriteLine("[NativeMapVote][INFO] Successfully manipulated the vote (no scandal though)!");
     }
