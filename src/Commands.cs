@@ -49,5 +49,11 @@ namespace NativeMapVote
                 command.ReplyToCommand(Localizer["rtv.vote_delay"].Value
                     .Replace("{seconds}", seconds.ToString()));
         }
+
+        [ConsoleCommand("nom", "Nomination of a map")]
+        [CommandHelper(whoCanExecute: CommandUsage.CLIENT_ONLY, minArgs: 0, usage: "!nom <mapname>")]
+        public void CommandNom(CCSPlayerController player, CommandInfo command)
+        {
+
+        }
     }
-}
