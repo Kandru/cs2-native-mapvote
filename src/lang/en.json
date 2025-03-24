@@ -2,10 +2,10 @@
     "core.debugprint": "[NativeMapVote][DEBUG]: {message}",
     "core.config": "[NativeMapVote] Configuration loaded",
     "rtv.text": "RTV started: want to change the map after this round?",
-    "rtv.already_success": "[NativeMapVote] already successfully voted :)",
-    "rtv.success": "[NativeMapVote] !rtv successfully called. Voting will start after this round",
-    "rtv.failed": "[NativeMapVote] !rtv failed",
-    "rtv.cooldown": "[NativeMapVote] !rtv is on cooldown. You can call it again in {seconds} seconds",
-    "rtv.in_progress": "[NativeMapVote] !rtv is currently in progress!",
-    "rtv.vote_delay": "[NativeMapVote] You have to wait ~{seconds} seconds before the vote will start automatically"
+    "rtv.already_success": "{lightblue}[RTV] already successfully voted :)",
+    "rtv.success": "{lightblue}[RTV] {green}!rtv {default}successfully called. Voting will start after this round",
+    "rtv.failed": "{lightblue}[RTV] {green}!rtv {default}failed",
+    "rtv.cooldown": "{lightblue}[RTV] {green}!rtv {default}is on cooldown. You can call it again in {seconds} seconds",
+    "rtv.in_progress": "{lightblue}[RTV] {green}!rtv {default}is currently in progress!",
+    "rtv.vote_delay": "{lightblue}[RTV] {default}You have to wait ~{green}{seconds} {default}seconds before the vote will start automatically"
 }

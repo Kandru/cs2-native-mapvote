@@ -2,10 +2,10 @@
     "core.debugprint": "[NativeMapVote][DEBUG]: {message}",
     "core.config": "[NativeMapVote] Konfiguration geladen",
     "rtv.text": "RTV gestartet: Möchtest du die Karte nach dieser Runde ändern?",
-    "rtv.already_success": "[NativeMapVote] bereits erfolgreich abgestimmt :)",
-    "rtv.success": "[NativeMapVote] !rtv erfolgreich aufgerufen. Die Abstimmung beginnt nach dieser Runde",
-    "rtv.failed": "[NativeMapVote] !rtv fehlgeschlagen",
-    "rtv.cooldown": "[NativeMapVote] !rtv ist in der Abkühlphase. Du kannst es in {seconds} Sekunden erneut aufrufen",
-    "rtv.in_progress": "[NativeMapVote] !rtv läuft bereits!",
-    "rtv.vote_delay": "[NativeMapVote] Du musst ~{seconds} Sekunden warten, bevor die Abstimmung automatisch beginnt"
+    "rtv.already_success": "{lightblue}[RTV] bereits erfolgreich abgestimmt :)",
+    "rtv.success": "{lightblue}[RTV] {green}!rtv {default}erfolgreich aufgerufen. Die Abstimmung beginnt nach dieser Runde",
+    "rtv.failed": "{lightblue}[RTV] {green}!rtv {default}fehlgeschlagen",
+    "rtv.cooldown": "{lightblue}[RTV] {green}!rtv {default}ist in der Abkühlphase. Du kannst es in {seconds} Sekunden erneut aufrufen",
+    "rtv.in_progress": "{lightblue}[RTV] {green}!rtv {default}läuft bereits!",
+    "rtv.vote_delay": "{lightblue}[RTV] {default}Du musst ~{green}{seconds}{default} Sekunden warten, bevor die Abstimmung automatisch beginnt"
 }
