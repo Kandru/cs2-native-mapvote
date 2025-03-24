@@ -1,7 +1,7 @@
 {
     "core.debugprint": "[NativeMapVote][DEBUG]: {message}",
     "core.config": "[NativeMapVote] Konfiguration geladen",
-    "rtv.text": "RTV gestartet: Möchtest du die Karte nach dieser Runde ändern?",
+    "rtv.text": "-> derzeit im Plugin fest codiert <-",
     "rtv.already_success": "{lightblue}[RTV] bereits erfolgreich abgestimmt :)",
     "rtv.success": "{lightblue}[RTV] {green}!rtv {default}erfolgreich aufgerufen. Die Abstimmung beginnt nach dieser Runde",
     "rtv.failed": "{lightblue}[RTV] {green}!rtv {default}fehlgeschlagen",

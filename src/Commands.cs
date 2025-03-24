@@ -33,7 +33,10 @@ namespace NativeMapVote
             // create vote
             _rtvVote = new(
                 "#SFUI_vote_custom_default",
-                Localizer["rtv.text"].Value, // TODO: support player languages
+                new Dictionary<string, string> {
+                    {"en", "RTV started: want to change the map after this round?"},
+                    {"de", "RTV gestartet: Möchtest du die Karte nach dieser Runde ändern?"},
+                },
                 Config.RtvVoteDuration,
                 -1,
                 [],

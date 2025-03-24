@@ -1,7 +1,7 @@
 {
     "core.debugprint": "[NativeMapVote][DEBUG]: {message}",
     "core.config": "[NativeMapVote] Configuration loaded",
-    "rtv.text": "RTV started: want to change the map after this round?",
+    "rtv.text": "-> currently hardcoded in the plugin <-",
     "rtv.already_success": "{lightblue}[RTV] already successfully voted :)",
     "rtv.success": "{lightblue}[RTV] {green}!rtv {default}successfully called. Voting will start after this round",
     "rtv.failed": "{lightblue}[RTV] {green}!rtv {default}failed",
