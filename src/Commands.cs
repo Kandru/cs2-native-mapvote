@@ -150,6 +150,7 @@ namespace NativeMapVote
             // check if one or multiple map(s) are found by the given name
             List<string> maps = _localMaps.FindAll(map => map.Contains(mapName, StringComparison.OrdinalIgnoreCase));
             maps.AddRange(_workshopMaps.FindAll(map => map.Contains(mapName, StringComparison.OrdinalIgnoreCase)));
+            maps = [.. maps.Distinct()];
             // if no map is found
             if (maps.Count == 0)
             {
