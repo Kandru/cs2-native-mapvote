@@ -1,6 +1,7 @@
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Capabilities;
+using CounterStrikeSharp.API.Modules.Extensions;
 using PanoramaVoteManagerAPI;
 
 namespace NativeMapVote
@@ -53,6 +54,9 @@ namespace NativeMapVote
             RtvReset();
             NominateReset();
             ChangelevelReset();
+            MapFeedbackVoteReset();
+            // save config to disk
+            Config.Update();
         }
 
         private HookResult OnRoundEnd(EventRoundEnd @event, GameEventInfo info)
@@ -72,7 +76,10 @@ namespace NativeMapVote
             {
                 AddOrUpdateMapConfig(Server.MapName, 1);
             }
+            // update end match voting
             UpdateEndMatchVoting();
+            // initialize feedback vote
+            InitializeMapFeedbackVote();
             return HookResult.Continue;
         }
     }

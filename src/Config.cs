@@ -44,6 +44,12 @@ namespace NativeMapVote
         [JsonPropertyName("changelevel_cooldown")] public int ChangelevelCooldown { get; set; } = 60;
         // changelevel on round end (else instantly)
         [JsonPropertyName("changelevel_on_round_end")] public bool ChangelevelOnRoundEnd { get; set; } = false;
+        // feedbackvote enable
+        [JsonPropertyName("feedbackvote_enabled")] public bool FeedbackVoteEnabled { get; set; } = true;
+        // feedbackvote duration
+        [JsonPropertyName("feedbackvote_duration")] public int FeedbackVoteDuration { get; set; } = 30;
+        // feedbackvote maximum delay
+        [JsonPropertyName("feedbackvote_max_delay")] public int FeedbackVoteMaxDelay { get; set; } = 10;
         // map list
         [JsonPropertyName("maps")] public Dictionary<string, MapConfig> Maps { get; set; } = [];
     }
@@ -62,13 +68,21 @@ namespace NativeMapVote
 
         private void AddOrUpdateMapConfig(string mapName, int type)
         {
-            if (!Config.Maps.ContainsKey(mapName))
+            if (!Config.Maps.ContainsKey(mapName.ToLower()))
             {
-                Config.Maps.Add(mapName, new MapConfig());
+                Config.Maps.Add(mapName.ToLower(), new MapConfig());
             }
-            Config.Maps[mapName].Type = type;
-            Config.Maps[mapName].TimesPlayed++;
-            Config.Update();
+            Config.Maps[mapName.ToLower()].Type = type;
+            Config.Maps[mapName.ToLower()].TimesPlayed++;
+        }
+
+        private void SetMapVoteFeedback(string mapName, bool positive, int amount = 1)
+        {
+            if (!Config.Maps.TryGetValue(mapName.ToLower(), out MapConfig? value)) return;
+            if (positive)
+                value.VotesPositive += amount;
+            else
+                value.VotesNegative += amount;
         }
     }
 }
