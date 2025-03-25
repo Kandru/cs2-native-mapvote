@@ -54,10 +54,10 @@ namespace NativeMapVote
             _changelevelMap = mapName;
             // create vote
             _changelevelVote = new(
-                "#SFUI_vote_custom_default",
+                Config.ChangelevelSfuiString,
                 new Dictionary<string, string> {
-                    {"en", $"Change the level to {mapName}?"}, // TODO: get from language file
-                    {"de", $"Karte wechseln zu {mapName}?"},
+                    {"en", mapName}, // TODO: get from language file
+                    {"de", mapName},
                 },
                 Config.ChangelevelVoteDuration,
                 -1,

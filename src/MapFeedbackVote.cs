@@ -20,10 +20,10 @@ namespace NativeMapVote
                 || _mapFeedbackVote != null) return;
             // create vote
             _mapFeedbackVote = new(
-                "#SFUI_vote_custom_default",
+                Config.SfuiString,
                 new Dictionary<string, string> {
-                    {"en", $"Did you like {Server.MapName.ToLower()}?"}, // TODO: get from language file
-                    {"de", $"Hat dir {Server.MapName.ToLower()} gefallen?"},
+                    {"en", $"{Config.SfuiPrefix}Did you like {Server.MapName.ToLower()}?{Config.SfuiSuffix}"}, // TODO: get from language file
+                    {"de", $"{Config.SfuiPrefix}Hat dir {Server.MapName.ToLower()} gefallen?{Config.SfuiSuffix}"},
                 },
                 Config.FeedbackVoteDuration,
                 -1,
