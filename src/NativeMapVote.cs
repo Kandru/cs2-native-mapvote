@@ -1,3 +1,4 @@
+using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Capabilities;
 using PanoramaVoteManagerAPI;
@@ -14,7 +15,15 @@ namespace NativeMapVote
 
         public override void Load(bool hotReload)
         {
+            RegisterListener<Listeners.OnMapStart>(OnMapStart);
             RegisterListener<Listeners.OnMapEnd>(OnMapEnd);
+            RegisterEventHandler<EventRoundEnd>(OnRoundEnd);
+            RegisterEventHandler<EventCsIntermission>(OnIntermission, HookMode.Pre);
+            if (hotReload)
+            {
+                LoadWorkshopMaps();
+                LoadLocalMaps();
+            }
         }
 
         public override void OnAllPluginsLoaded(bool hotReload)
@@ -24,13 +33,47 @@ namespace NativeMapVote
 
         public override void Unload(bool hotReload)
         {
+            RtvReset();
+            NominateReset();
+            ChangelevelReset();
+            RemoveListener<Listeners.OnMapStart>(OnMapStart);
             RemoveListener<Listeners.OnMapEnd>(OnMapEnd);
+            DeregisterEventHandler<EventRoundEnd>(OnRoundEnd);
+            DeregisterEventHandler<EventCsIntermission>(OnIntermission, HookMode.Pre);
+        }
+
+        private void OnMapStart(string mapName)
+        {
+            LoadWorkshopMaps();
+            LoadLocalMaps();
         }
 
         private void OnMapEnd()
         {
-            // reset
             RtvReset();
+            NominateReset();
+            ChangelevelReset();
+        }
+
+        private HookResult OnRoundEnd(EventRoundEnd @event, GameEventInfo info)
+        {
+            DoChangeLevel();
+            return HookResult.Continue;
+        }
+
+        private HookResult OnIntermission(EventCsIntermission @event, GameEventInfo info)
+        {
+            // add map to config if not exists
+            if (_localMaps.Any(map => map.Equals(Server.MapName, StringComparison.OrdinalIgnoreCase)))
+            {
+                AddOrUpdateMapConfig(Server.MapName, 0);
+            }
+            else if (_workshopMaps.Any(map => map.Equals(Server.MapName, StringComparison.OrdinalIgnoreCase)))
+            {
+                AddOrUpdateMapConfig(Server.MapName, 1);
+            }
+            UpdateEndMatchVoting();
+            return HookResult.Continue;
         }
     }
 }

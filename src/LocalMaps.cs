@@ -4,14 +4,14 @@ namespace NativeMapVote
 {
     public partial class NativeMapVote
     {
-        private List<string> _workshopMaps = [];
+        private List<string> _localMaps = [];
 
-        private void LoadWorkshopMaps()
+        private void LoadLocalMaps()
         {
             ConVar? cvarHostPort = ConVar.Find("hostport");
             ConVar? cvarRconPassword = ConVar.Find("rcon_password");
             if (cvarHostPort == null || cvarRconPassword == null) return;
-            _workshopMaps.Clear();
+            _localMaps.Clear();
             Task.Run(async () =>
             {
                 RCONClient client = new RCONClient(
@@ -22,25 +22,31 @@ namespace NativeMapVote
                 try
                 {
                     client.Connect();
-                    string response = client.SendCommand("print_mapgroup_sv");
-                    // check for workshop maps
+                    string response = client.SendCommand("maps *");
+                    // check for local maps
                     if (string.IsNullOrEmpty(response)) return;
                     var lines = response.Split('\n');
                     foreach (var line in lines)
                     {
-                        if (line.Length == 0 || line.Contains(':')) continue;
-                        _workshopMaps.Add(line.Trim().ToLower());
+                        if (line.Length == 0
+                            || line.Contains('\\')
+                            || line.Contains("lobby")
+                            || line.Contains("error")
+                            || line.Contains("workshop")
+                            || line.Contains("graphics_settings")
+                            || line.EndsWith("_vanity")) continue;
+                        _localMaps.Add(line.Trim().ToLower());
                     }
-                    if (_workshopMaps.Count == 0)
-                        DebugPrint(Localizer["workshop.error"].Value
-                            .Replace("{error}", "No workshop maps found"));
+                    if (_localMaps.Count == 0)
+                        DebugPrint(Localizer["localmaps.error"].Value
+                            .Replace("{error}", "No local maps found"));
                     else
-                        DebugPrint(Localizer["workshop.success"].Value
-                            .Replace("{amount}", _workshopMaps.Count.ToString()));
+                        DebugPrint(Localizer["localmaps.success"].Value
+                            .Replace("{amount}", _localMaps.Count.ToString()));
                 }
                 catch (Exception ex)
                 {
-                    DebugPrint(Localizer["workshop.error"].Value
+                    DebugPrint(Localizer["localmaps.error"].Value
                         .Replace("{error}", ex.Message));
                 }
                 finally
