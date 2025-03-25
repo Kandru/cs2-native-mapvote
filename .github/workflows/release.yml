@@ -25,6 +25,7 @@ jobs:
       uses: actions/checkout@v2
       with:
         fetch-depth: 0  # Fetch all history for all branches and tags
+        submodules: true
 
     - name: Get Current Project Version Number From Version.cs
       id: get_version
