@@ -30,6 +30,7 @@ namespace NativeMapVote
                     {
                         if (line.Length == 0
                             || line.Contains('\\')
+                            || line.Contains('/')
                             || line.Contains("lobby")
                             || line.Contains("error")
                             || line.Contains("workshop")
