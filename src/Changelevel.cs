@@ -89,7 +89,8 @@ namespace NativeMapVote
                     else
                         entry.PrintToChat(Localizer["changelevel.success_now"].Value
                             .Replace("{map}", _changelevelMap)); // TODO: get players language
-                DoChangeLevel();
+                // change level if not on round end
+                if (!Config.ChangelevelOnRoundEnd) DoChangeLevel();
             }
             else
             {
