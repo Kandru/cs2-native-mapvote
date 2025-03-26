@@ -1,5 +1,6 @@
 using CounterStrikeSharp.API;
 using PanoramaVoteManagerAPI.Enums;
+using CounterStrikeSharp.API.Modules.Cvars;
 using PanoramaVoteManagerAPI.Vote;
 
 namespace NativeMapVote
@@ -18,6 +19,17 @@ namespace NativeMapVote
             if (_voteManager == null
                 || !Config.FeedbackVoteEnabled
                 || _mapFeedbackVote != null) return;
+            int feedbackVoteTime = Config.FeedbackVoteDuration;
+            // get map choose time if available and add to feedback vote time
+            ConVar? mpEndmatchVoteNextLevelTime = ConVar.Find("mp_endmatch_votenextleveltime");
+            ConVar? mpEndmatchVoteNextMap = ConVar.Find("mp_endmatch_votenextmap");
+            if (mpEndmatchVoteNextMap != null
+                && mpEndmatchVoteNextLevelTime != null
+                && mpEndmatchVoteNextMap.GetPrimitiveValue<bool>() == true)
+            {
+                feedbackVoteTime += (int)mpEndmatchVoteNextLevelTime.GetPrimitiveValue<float>();
+            }
+            if (feedbackVoteTime <= 0) return;
             // create vote
             _mapFeedbackVote = new(
                 Config.SfuiString,
@@ -25,7 +37,7 @@ namespace NativeMapVote
                     {"en", $"{Config.SfuiPrefix}Did you like {Server.MapName.ToLower()}?{Config.SfuiSuffix}"}, // TODO: get from language file
                     {"de", $"{Config.SfuiPrefix}Hat dir {Server.MapName.ToLower()} gefallen?{Config.SfuiSuffix}"},
                 },
-                Config.FeedbackVoteDuration,
+                feedbackVoteTime,
                 -1,
                 [],
                 99,

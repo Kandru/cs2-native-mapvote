@@ -55,7 +55,7 @@ namespace NativeMapVote
         // feedbackvote enable
         [JsonPropertyName("feedbackvote_enabled")] public bool FeedbackVoteEnabled { get; set; } = true;
         // feedbackvote duration
-        [JsonPropertyName("feedbackvote_duration")] public int FeedbackVoteDuration { get; set; } = 30;
+        [JsonPropertyName("feedbackvote_duration")] public int FeedbackVoteDuration { get; set; } = 0;
         // feedbackvote maximum delay
         [JsonPropertyName("feedbackvote_max_delay")] public int FeedbackVoteMaxDelay { get; set; } = 10;
         // map list
