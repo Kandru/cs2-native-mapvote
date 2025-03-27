@@ -41,6 +41,7 @@ namespace NativeMapVote
                 -1,
                 [],
                 99,
+                VoteFlags.AlwaysSuccessful,
                 MapFeedbackVoteCallback
             );
             // send vote
@@ -52,19 +53,9 @@ namespace NativeMapVote
         private void MapFeedbackVoteCallback(Vote vote, bool success)
         {
             if (_mapFeedbackVote == null) return;
-            // count feedback from vote._voters
-            int count_positive = 0;
-            int count_negative = 0;
-            foreach (var kvp in vote._voters)
-            {
-                if (kvp.Value == (int)VoteOptions.YES)
-                    count_positive++;
-                else if (kvp.Value == (int)VoteOptions.NO)
-                    count_negative++;
-            }
             // update map feedback
-            SetMapVoteFeedback(Server.MapName, true, count_positive);
-            SetMapVoteFeedback(Server.MapName, false, count_negative);
+            SetMapVoteFeedback(Server.MapName, true, vote.GetYesVotes());
+            SetMapVoteFeedback(Server.MapName, false, vote.GetNoVotes());
             // reset vote
             _mapFeedbackVote = null;
         }

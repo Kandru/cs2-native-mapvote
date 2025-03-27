@@ -3,6 +3,7 @@ using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Commands;
 using CounterStrikeSharp.API.Modules.Menu;
 using PanoramaVoteManagerAPI.Vote;
+using PanoramaVoteManagerAPI.Enums;
 
 namespace NativeMapVote
 {
@@ -63,6 +64,7 @@ namespace NativeMapVote
                 -1,
                 [],
                 (int)player.UserId,
+                VoteFlags.None,
                 ChangelevelCallback
             );
             // send vote
