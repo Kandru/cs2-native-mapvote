@@ -74,13 +74,18 @@ namespace NativeMapVote
             Console.WriteLine(Localizer["core.config"]);
         }
 
-        private void AddOrUpdateMapConfig(string mapName, int type)
+        private void AddMapConfig(string mapName, int type)
         {
             if (!Config.Maps.ContainsKey(mapName.ToLower()))
             {
                 Config.Maps.Add(mapName.ToLower(), new MapConfig());
             }
             Config.Maps[mapName.ToLower()].Type = type;
+        }
+
+        private void UpdateMapPlayTime(string mapName)
+        {
+            if (!Config.Maps.ContainsKey(mapName.ToLower())) return;
             Config.Maps[mapName.ToLower()].TimesPlayed++;
         }
 

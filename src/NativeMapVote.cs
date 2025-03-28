@@ -68,15 +68,8 @@ namespace NativeMapVote
 
         private HookResult OnIntermission(EventCsIntermission @event, GameEventInfo info)
         {
-            // add map to config if not exists
-            if (_localMaps.Any(map => map.Equals(Server.MapName, StringComparison.OrdinalIgnoreCase)))
-            {
-                AddOrUpdateMapConfig(Server.MapName, 0);
-            }
-            else if (_workshopMaps.Any(map => map.Equals(Server.MapName, StringComparison.OrdinalIgnoreCase)))
-            {
-                AddOrUpdateMapConfig(Server.MapName, 1);
-            }
+            // update playtime of map
+            UpdateMapPlayTime(Server.MapName);
             // update end match voting
             UpdateEndMatchVoting();
             // initialize feedback vote

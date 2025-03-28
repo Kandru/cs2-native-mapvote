@@ -30,6 +30,7 @@ namespace NativeMapVote
                     {
                         if (line.Length == 0 || line.Contains(':')) continue;
                         _workshopMaps.Add(line.Trim().ToLower());
+                        AddMapConfig(line.Trim().ToLower(), 1);
                     }
                     if (_workshopMaps.Count == 0)
                         DebugPrint(Localizer["workshop.error"].Value

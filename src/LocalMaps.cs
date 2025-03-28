@@ -37,6 +37,7 @@ namespace NativeMapVote
                             || line.Contains("graphics_settings")
                             || line.EndsWith("_vanity")) continue;
                         _localMaps.Add(line.Trim().ToLower());
+                        AddMapConfig(line.Trim().ToLower(), 0);
                     }
                     if (_localMaps.Count == 0)
                         DebugPrint(Localizer["localmaps.error"].Value
