@@ -2,6 +2,6 @@ namespace NativeMapVote
 {
     public partial class NativeMapVote
     {
-        public override string ModuleVersion => "0.1.6";
+        public override string ModuleVersion => "0.1.7";
     }
 }
