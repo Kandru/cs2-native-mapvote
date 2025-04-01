@@ -42,11 +42,10 @@ namespace NativeMapVote
 
             if (random > 0)
             {
-                var randomMaps = GetRandomMaps(random * 2)
+                var randomMaps = GetRandomMaps(100)
                     .Where(map => !maps.Contains(map))
-                    .Take(random);
-                for (int i = maps.Count - 1, j = 0; i >= 0 && j < randomMaps.Count(); i--, j++)
-                    maps[i] = randomMaps.ElementAt(j);
+                    .Take(total - maps.Count + random);
+                maps.AddRange(randomMaps);
             }
 
             return maps;
