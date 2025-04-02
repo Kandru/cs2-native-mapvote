@@ -44,24 +44,22 @@ namespace NativeMapVote
                 || !proxy.IsValid
                 || proxy.GameRules == null) return;
             // we need to merge _nominations and maps until we reach EndmapVoteAmountMaps. Priority is on _nominations, fill up with maps
-            List<string> endMaps = _nominations.Values.Concat(maps)
+            var endMaps = _nominations.Values.Concat(maps)
                 .Distinct()
-                .Take(Config.EndmapVoteAmountMaps)
-                .ToList();
+                .Take(Config.EndmapVoteAmountMaps);
             // only use endMaps which are present in _workshopMaps (vote only refers to mapgroup maps)
-            endMaps = endMaps.Where(x => _workshopMaps.Contains(x))
-                .ToList();
+            endMaps = endMaps.Where(_workshopMaps.Contains);
             foreach (ref var option in proxy.GameRules.EndMatchMapGroupVoteOptions)
             {
-                // get map from endMaps and assign it to option
-                if (endMaps.Count == 0) continue;
-                if (!_workshopMaps.Contains(endMaps[0]))
+                // get map from endMapsList and assign it to option
+                if (!endMaps.Any()) break;
+                if (!_workshopMaps.Contains(endMaps.First()))
                 {
-                    endMaps.RemoveAt(0);
+                    endMaps = endMaps.Skip(1);
                     continue;
                 }
-                option = _workshopMaps.IndexOf(endMaps[0]);
-                endMaps.RemoveAt(0);
+                option = _workshopMaps.IndexOf(endMaps.First());
+                endMaps = endMaps.Skip(1);
             }
         }
     }
