@@ -28,7 +28,9 @@ namespace NativeMapVote
                     var lines = response.Split('\n');
                     foreach (var line in lines)
                     {
-                        if (line.Length == 0 || line.Contains(':')) continue;
+                        if (line.Length == 0
+                            || line.Contains(':')
+                            || line.Contains("No maps in mapgroup map list")) continue;
                         _workshopMaps.Add(line.Trim().ToLower());
                         AddMapConfig(line.Trim().ToLower(), 1);
                     }
