@@ -63,6 +63,10 @@ Displays the best maps by end match voting.
 
 Displays the worst maps by end match voting.
 
+#### nativemapvote cleanup
+
+Cleans up all the maps in the configuration file that are not in the current workshop maplist or in local map list.
+
 ## Compile Yourself
 
 Clone the project:

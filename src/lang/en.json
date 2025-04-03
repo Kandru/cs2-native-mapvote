@@ -5,6 +5,7 @@
     "admin.reload": "[NativeMapVote] Configuration reloaded",
     "admin.best_maps": "[NativeMapVote] Best maps:",
     "admin.worst_maps": "[NativeMapVote] Worst maps:",
+    "admin.cleanup": "[NativeMapVote] Cleanup finished. Removed {amount} maps from the configuration.",
     "rtv.text": "-> currently hardcoded in the plugin <-",
     "rtv.already_success": "{lightblue}[RTV] already successfully voted :)",
     "rtv.success": "{lightblue}[RTV] {green}!rtv {default}successfully called. Voting will start after this round",

@@ -211,6 +211,26 @@ namespace NativeMapVote
                     foreach (var map in worstMaps)
                         command.ReplyToCommand($"{map}: {Config.Maps[map].VotesPositive} / {Config.Maps[map].VotesNegative}");
                     break;
+                case "cleanup":
+                    // remove all maps from Config.Maps that are not in _localMaps or _workshopMaps
+                    if (_workshopMaps.Count > 0 || _localMaps.Count > 0)
+                    {
+                        var mapsToRemove = Config.Maps
+                            .Where(x => !_localMaps.Contains(x.Key) && !_workshopMaps.Contains(x.Key))
+                            .Select(x => x.Key)
+                            .ToList();
+                        command.ReplyToCommand(Localizer["admin.cleanup"].Value
+                            .Replace("{amount}", mapsToRemove.Count.ToString()));
+                        foreach (var map in mapsToRemove)
+                            Config.Maps.Remove(map);
+                        Config.Update();
+                    }
+                    else
+                    {
+                        command.ReplyToCommand(Localizer["admin.cleanup"].Value
+                            .Replace("{amount}", "0"));
+                    }
+                    break;
                 default:
                     command.ReplyToCommand(Localizer["admin.unknown_command"].Value
                         .Replace("{command}", subCommand));
