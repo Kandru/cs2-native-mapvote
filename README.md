@@ -27,6 +27,41 @@ This plugin automatically creates a readable JSON configuration file. This confi
 
 ```
 
+## Commands
+
+There are some commands players and server administrators can use:
+
+### !skip / !rtv / !rockthevote
+
+Starts a new Rock The Vote.
+
+### !nom / !nominate <mapname>
+
+Starts a nomination. Supports partly entered map names and gives a list to choose from if multiple maps are found.
+
+### !noms / !nominations
+
+Lists all current nominations if any.
+
+### !cl / !cv / !map / !level / !changelevel <mapname>
+
+Starts a vote to change the level to the given level. Supports partly entered map names and gives a list to choose from if multiple maps are found.
+
+### nativemapvote (Server Console Only)
+
+Ability to run sub-commands:
+
+#### nativemapvote reload
+
+Reloads the configuration
+
+#### nativemapvote best_maps
+
+Displays the best maps by end match voting.
+
+#### nativemapvote worst_maps
+
+Displays the worst maps by end match voting.
 
 ## Compile Yourself
 

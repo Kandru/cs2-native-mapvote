@@ -1,6 +1,7 @@
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Attributes.Registration;
 using CounterStrikeSharp.API.Modules.Commands;
+using CounterStrikeSharp.API.Modules.Extensions;
 using CounterStrikeSharp.API.Modules.Menu;
 using PanoramaVoteManagerAPI.Enums;
 
@@ -171,6 +172,49 @@ namespace NativeMapVote
             else
             {
                 InitiateLevelChange(maps.First(), player, command);
+            }
+        }
+
+        [ConsoleCommand("nativemapvote", "NativeMapVote admin commands")]
+        [CommandHelper(whoCanExecute: CommandUsage.SERVER_ONLY, minArgs: 1, usage: "<command>")]
+        public void CommandMapVote(CCSPlayerController player, CommandInfo command)
+        {
+            string subCommand = command.GetArg(1);
+            switch (subCommand.ToLower())
+            {
+                case "reload":
+                    Config.Reload();
+                    command.ReplyToCommand(Localizer["admin.reload"]);
+                    break;
+                case "best_maps":
+                    command.ReplyToCommand(Localizer["admin.best_maps"]);
+                    // get best voted maps from Config.Maps
+                    var bestMaps = Config.Maps
+                        .Where(x => x.Value.VotesPositive > 0)
+                        .OrderByDescending(x => (double)x.Value.VotesPositive / (x.Value.VotesPositive + x.Value.VotesNegative))
+                        .Take(25)
+                        .Select(x => x.Key)
+                        .ToList();
+                    // iterate through all maps and reply
+                    foreach (var map in bestMaps)
+                        command.ReplyToCommand($"{map}: {Config.Maps[map].VotesPositive} / {Config.Maps[map].VotesNegative}");
+                    break;
+                case "worst_maps":
+                    command.ReplyToCommand(Localizer["admin.worst_maps"]);
+                    // get worst maps from Config.Maps
+                    var worstMaps = Config.Maps
+                        .Where(x => x.Value.VotesNegative > 0)
+                        .OrderByDescending(x => (double)x.Value.VotesNegative / (x.Value.VotesPositive + x.Value.VotesNegative))
+                        .Take(25)
+                        .Select(x => x.Key)
+                        .ToList();
+                    foreach (var map in worstMaps)
+                        command.ReplyToCommand($"{map}: {Config.Maps[map].VotesPositive} / {Config.Maps[map].VotesNegative}");
+                    break;
+                default:
+                    command.ReplyToCommand(Localizer["admin.unknown_command"].Value
+                        .Replace("{command}", subCommand));
+                    break;
             }
         }
     }
