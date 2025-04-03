@@ -40,8 +40,10 @@ namespace NativeMapVote
         [JsonPropertyName("nominations_enabled")] public bool NominationsEnabled { get; set; } = true;
         // maximum number of nominations
         [JsonPropertyName("nominations_max")] public int MaxNominations { get; set; } = 10;
-        // amount of top maps to show
-        [JsonPropertyName("endmap_vote_amount_maps")] public int EndmapVoteAmountMaps { get; set; } = 10;
+        // amount of maps to show
+        [JsonPropertyName("endmap_vote_amount_total_maps")] public int EndmapVoteAmountMaps { get; set; } = 10;
+        // amount of random maps to show
+        [JsonPropertyName("endmap_vote_amount_random_maps")] public int EndmapVoteAmountRandomMaps { get; set; } = 4;
         // changelevel enabled
         [JsonPropertyName("changelevel_enabled")] public bool ChangelevelEnabled { get; set; } = true;
         // changelevel SFUI string

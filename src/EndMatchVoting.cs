@@ -21,23 +21,44 @@ namespace NativeMapVote
                 .ToList();
         }
 
-        private List<string> GetMapsForEndMatchVoting(int total = 10)
+        private List<string> GetRandomMaps(int total = 5)
         {
-            if (total > Config.EndmapVoteAmountMaps)
-                total = Config.EndmapVoteAmountMaps;
+            return Config.Maps.OrderBy(x => Guid.NewGuid())
+                .Take(total)
+                .Select(x => x.Key)
+                .ToList();
+        }
+
+        private List<string> GetMapsForEndMatchVoting(int total = 10, int random = 4)
+        {
+            total -= random;
             int totalMost = total / 2;
             int totalLeast = total - totalMost;
-            return GetMostPlayedMaps(totalMost)
+
+            var maps = GetMostPlayedMaps(totalMost)
                 .Concat(GetLeastPlayedMaps(totalLeast))
                 .Distinct()
                 .ToList();
+
+            if (random > 0)
+            {
+                var randomMaps = GetRandomMaps(100)
+                    .Where(map => !maps.Contains(map))
+                    .Take(total - maps.Count + random);
+                maps.AddRange(randomMaps);
+            }
+
+            return maps;
         }
 
         private void UpdateEndMatchVoting()
         {
             if (_workshopMaps.Count == 0
                 || Config.Maps.Count == 0) return;
-            List<string> maps = GetMapsForEndMatchVoting();
+            List<string> maps = GetMapsForEndMatchVoting(
+                Config.EndmapVoteAmountMaps,
+                Config.EndmapVoteAmountRandomMaps
+            );
             var proxies = Utilities.FindAllEntitiesByDesignerName<CCSGameRulesProxy>("cs_gamerules");
             var proxy = proxies.FirstOrDefault();
             if (proxy == null
