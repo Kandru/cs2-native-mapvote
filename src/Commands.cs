@@ -23,6 +23,13 @@ namespace NativeMapVote
                 command.ReplyToCommand(Localizer["rtv.already_success"]);
                 return;
             }
+            // check if changelevel was already successful
+            if (_changelevelSuccess)
+            {
+                command.ReplyToCommand(Localizer["changelevel.already_success"].Value
+                    .Replace("{map}", _changelevelMap)); // TODO: get players language
+                return;
+            }
             // check if rtv is in progress
             if (_rtvVote != null)
             {
@@ -129,6 +136,11 @@ namespace NativeMapVote
             {
                 command.ReplyToCommand(Localizer["changelevel.already_success"].Value
                     .Replace("{map}", _changelevelMap)); // TODO: get players language
+                return;
+            }
+            if (_rtvSuccess)
+            {
+                command.ReplyToCommand(Localizer["rtv.already_success"]);
                 return;
             }
             // check if changelevel is in progress
