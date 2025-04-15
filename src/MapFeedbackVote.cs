@@ -41,7 +41,7 @@ namespace NativeMapVote
                 -1,
                 [],
                 99,
-                VoteFlags.AlwaysSuccessful,
+                VoteFlags.AlwaysSuccessful | VoteFlags.DoNotEndUntilAllVoted,
                 MapFeedbackVoteCallback
             );
             // send vote
