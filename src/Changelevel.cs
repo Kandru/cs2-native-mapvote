@@ -55,17 +55,19 @@ namespace NativeMapVote
             _changelevelMap = mapName;
             // create vote
             _changelevelVote = new(
-                Config.ChangelevelSfuiString,
-                new Dictionary<string, string> {
+                sfui: Config.ChangelevelSfuiString,
+                text: new Dictionary<string, string> {
                     {"en", mapName}, // TODO: get from language file
                     {"de", mapName},
                 },
-                Config.ChangelevelVoteDuration,
-                -1,
-                [],
-                (int)player.UserId,
-                VoteFlags.None,
-                ChangelevelCallback
+                time: Config.ChangelevelVoteDuration,
+                team: -1,
+                playerIDs: [],
+                initiator: (int)player.UserId,
+                minSuccessPercentage: 51f,
+                minVotes: 1,
+                flags: VoteFlags.None,
+                callback: ChangelevelCallback
             );
             // send vote
             int seconds = _voteManager.AddVote(_changelevelVote);

@@ -32,17 +32,19 @@ namespace NativeMapVote
             if (feedbackVoteTime <= 0) return;
             // create vote
             _mapFeedbackVote = new(
-                Config.SfuiString,
-                new Dictionary<string, string> {
+                sfui: Config.SfuiString,
+                text: new Dictionary<string, string> {
                     {"en", $"{Config.SfuiPrefix}Did you like {Server.MapName.ToLower()}?{Config.SfuiSuffix}"}, // TODO: get from language file
                     {"de", $"{Config.SfuiPrefix}Hat dir {Server.MapName.ToLower()} gefallen?{Config.SfuiSuffix}"},
                 },
-                feedbackVoteTime,
-                -1,
-                [],
-                99,
-                VoteFlags.AlwaysSuccessful | VoteFlags.DoNotEndUntilAllVoted,
-                MapFeedbackVoteCallback
+                time: feedbackVoteTime,
+                team: -1,
+                playerIDs: [],
+                initiator: 99,
+                minSuccessPercentage: 0f,
+                minVotes: 0,
+                flags: VoteFlags.AlwaysSuccessful | VoteFlags.DoNotEndUntilAllVoted,
+                callback: MapFeedbackVoteCallback
             );
             // send vote
             int seconds = _voteManager.AddVote(_mapFeedbackVote);

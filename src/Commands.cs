@@ -45,17 +45,19 @@ namespace NativeMapVote
             }
             // create vote
             _rtvVote = new(
-                Config.SfuiString,
-                new Dictionary<string, string> {
+                sfui: Config.SfuiString,
+                text: new Dictionary<string, string> {
                     {"en", $"{Config.SfuiPrefix}RTV: want to change the map after this round?{Config.SfuiSuffix}"}, // TODO: get from language file
                     {"de", $"{Config.SfuiPrefix}RTV: Möchtest du die Karte nach dieser Runde ändern?{Config.SfuiSuffix}"},
                 },
-                Config.RtvVoteDuration,
-                -1,
-                [],
-                (int)player.UserId,
-                VoteFlags.None,
-                RtvCallback
+                time: Config.RtvVoteDuration,
+                team: -1,
+                playerIDs: [],
+                initiator: (int)player.UserId,
+                minSuccessPercentage: 0.51f,
+                minVotes: 1,
+                flags: VoteFlags.None,
+                callback: RtvCallback
             );
             // send vote
             int seconds = _voteManager.AddVote(_rtvVote);
