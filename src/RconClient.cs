@@ -1,10 +1,9 @@
-using System;
 using System.Net.Sockets;
 using System.Text;
 
 namespace NativeMapVote
 {
-    public class RCONClient(string ip, int port, string password, int timeout = 5000)
+    public class RCONClient(string ip, int port, string password, int timeout = 5000) : IDisposable
     {
         private readonly string ip = ip;
         private readonly int port = port;
@@ -12,7 +11,7 @@ namespace NativeMapVote
         private readonly int timeout = timeout;
         private TcpClient? tcpClient;
         private NetworkStream? networkStream;
-        private int requestId = 0;
+        private int requestId;
 
         public void Connect()
         {
@@ -31,8 +30,8 @@ namespace NativeMapVote
             requestId++;
             byte[] authPacket = CreatePacket(requestId, 3, password);
             networkStream!.Write(authPacket, 0, authPacket.Length);
-            var response = ReceiveResponse();
-            if (response.RequestId == -1)
+            (int RequestId, _, _) = ReceiveResponse();
+            if (RequestId == -1)
             {
                 throw new Exception("Authentication failed");
             }
@@ -57,11 +56,11 @@ namespace NativeMapVote
         private (int RequestId, int ResponseType, string Body) ReceiveResponse()
         {
             byte[] lengthBytes = new byte[4];
-            networkStream!.Read(lengthBytes, 0, 4);
+            _ = networkStream!.Read(lengthBytes, 0, 4);
             int packetLength = BitConverter.ToInt32(lengthBytes, 0);
 
             byte[] responseBytes = new byte[packetLength];
-            networkStream.Read(responseBytes, 0, packetLength);
+            _ = networkStream.Read(responseBytes, 0, packetLength);
 
             int requestId = BitConverter.ToInt32(responseBytes, 0);
             int responseType = BitConverter.ToInt32(responseBytes, 4);
@@ -75,14 +74,19 @@ namespace NativeMapVote
             requestId++;
             byte[] commandPacket = CreatePacket(requestId, 2, command);
             networkStream!.Write(commandPacket, 0, commandPacket.Length);
-            var response = ReceiveResponse();
-            return response.Body;
+            (_, _, string Body) = ReceiveResponse();
+            return Body;
         }
 
         public void Close()
         {
             networkStream?.Close();
             tcpClient?.Close();
+        }
+
+        public void Dispose()
+        {
+            throw new NotImplementedException();
         }
     }
 }

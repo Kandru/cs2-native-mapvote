@@ -6,7 +6,7 @@ namespace NativeMapVote
 {
     public partial class NativeMapVote
     {
-        private Dictionary<CCSPlayerController, string> _nominations = [];
+        private readonly Dictionary<CCSPlayerController, string> _nominations = [];
 
         private void NominateReset()
         {
@@ -17,7 +17,10 @@ namespace NativeMapVote
         {
             if (player == null
             || !player.IsValid
-            || command == null) return;
+            || command == null)
+            {
+                return;
+            }
             // check if max nominations is reached
             if (_nominations.Count >= Config.MaxNominations && !_nominations.ContainsKey(player))
             {
@@ -34,7 +37,7 @@ namespace NativeMapVote
                 return;
             }
             // add map to nominations
-            if (_nominations.ContainsKey(player))
+            if (!_nominations.TryAdd(player, mapName))
             {
                 _nominations[player] = mapName;
                 // announce nomination
@@ -43,14 +46,15 @@ namespace NativeMapVote
             }
             else
             {
-                _nominations.Add(player, mapName);
                 // announce nomination
                 command.ReplyToCommand(Localizer["nomination.success"].Value
                     .Replace("{map}", mapName));
             }
             // close menu if not sent from menu
             if (sentFromMenu)
+            {
                 MenuManager.CloseActiveMenu(player);
+            }
         }
     }
 }

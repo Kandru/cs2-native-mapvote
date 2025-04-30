@@ -15,8 +15,15 @@ namespace NativeMapVote
         [CommandHelper(whoCanExecute: CommandUsage.CLIENT_ONLY, minArgs: 0, usage: "")]
         public void CommandRtv(CCSPlayerController player, CommandInfo command)
         {
-            if (!Config.RtvEnabled) return;
-            if (_voteManager == null || !player.UserId.HasValue) return;
+            if (!Config.RtvEnabled)
+            {
+                return;
+            }
+
+            if (_voteManager == null || !player.UserId.HasValue)
+            {
+                return;
+            }
             // check if rtv was already successful
             if (_rtvSuccess)
             {
@@ -62,8 +69,10 @@ namespace NativeMapVote
             // send vote
             int seconds = _voteManager.AddVote(_rtvVote);
             if (seconds > 0)
+            {
                 command.ReplyToCommand(Localizer["rtv.vote_delay"].Value
                     .Replace("{seconds}", seconds.ToString()));
+            }
         }
 
         [ConsoleCommand("nom", "Nomination of a map")]
@@ -71,7 +80,11 @@ namespace NativeMapVote
         [CommandHelper(whoCanExecute: CommandUsage.CLIENT_ONLY, minArgs: 1, usage: "<mapname>")]
         public void CommandNom(CCSPlayerController player, CommandInfo command)
         {
-            if (!Config.NominationsEnabled) return;
+            if (!Config.NominationsEnabled)
+            {
+                return;
+            }
+
             string mapName = command.GetArg(1);
             // check if max nominations is reached
             if (_nominations.Count >= Config.MaxNominations && !_nominations.ContainsKey(player))
@@ -97,10 +110,13 @@ namespace NativeMapVote
             else if (maps.Count > 1)
             {
                 // create menu to choose map
-                var menu = new ChatMenu(Localizer["nomination.menu.title"]);
+                ChatMenu menu = new(Localizer["nomination.menu.title"]);
                 // add menu options
-                foreach (var map in maps)
-                    menu.AddMenuOption(map, (_, _) => { NominateMap(map, player, command, true); });
+                foreach (string map in maps)
+                {
+                    _ = menu.AddMenuOption(map, (_, _) => { NominateMap(map, player, command, true); });
+                }
+
                 MenuManager.OpenChatMenu(player, menu);
             }
             else
@@ -114,12 +130,20 @@ namespace NativeMapVote
         [CommandHelper(whoCanExecute: CommandUsage.CLIENT_ONLY, minArgs: 0, usage: "")]
         public void CommandNoms(CCSPlayerController player, CommandInfo command)
         {
-            if (!Config.NominationsEnabled) return;
+            if (!Config.NominationsEnabled)
+            {
+                return;
+            }
+
             if (_nominations.Count == 0)
+            {
                 command.ReplyToCommand(Localizer["nominations.empty"]);
+            }
             else
+            {
                 command.ReplyToCommand(Localizer["nominations.list"].Value
-                    .Replace("{nominations}", string.Join(", ", _nominations.Select(x => $"{x.Key.PlayerName} -> {x.Value}"))));
+                    .Replace("{nominations}", string.Join(", ", _nominations.Select(static x => $"{x.Key.PlayerName} -> {x.Value}"))));
+            }
         }
 
         [ConsoleCommand("cl", "Vote to change the level")]
@@ -131,7 +155,11 @@ namespace NativeMapVote
         public void CommandChangeLevel(CCSPlayerController player, CommandInfo command)
         {
             if (!Config.ChangelevelEnabled
-                || _voteManager == null) return;
+                || _voteManager == null)
+            {
+                return;
+            }
+
             string mapName = command.GetArg(1);
             // check if changelevel was already successful
             if (_changelevelSuccess)
@@ -177,10 +205,13 @@ namespace NativeMapVote
             else if (maps.Count > 1)
             {
                 // create menu to choose map
-                var menu = new ChatMenu(Localizer["changelevel.menu.title"]);
+                ChatMenu menu = new(Localizer["changelevel.menu.title"]);
                 // add menu options
-                foreach (var map in maps)
-                    menu.AddMenuOption(map, (_, _) => { InitiateLevelChange(map, player, command, true); });
+                foreach (string map in maps)
+                {
+                    _ = menu.AddMenuOption(map, (_, _) => { InitiateLevelChange(map, player, command, true); });
+                }
+
                 MenuManager.OpenChatMenu(player, menu);
             }
             else
@@ -194,7 +225,7 @@ namespace NativeMapVote
         public void CommandMapVote(CCSPlayerController player, CommandInfo command)
         {
             string subCommand = command.GetArg(1);
-            switch (subCommand.ToLower())
+            switch (subCommand.ToLower(System.Globalization.CultureInfo.CurrentCulture))
             {
                 case "reload":
                     Config.Reload();
@@ -203,40 +234,46 @@ namespace NativeMapVote
                 case "best_maps":
                     command.ReplyToCommand(Localizer["admin.best_maps"]);
                     // get best voted maps from Config.Maps
-                    var bestMaps = Config.Maps
+                    List<string> bestMaps = [.. Config.Maps
                         .Where(x => x.Value.VotesPositive > 0)
                         .OrderByDescending(x => (double)x.Value.VotesPositive / (x.Value.VotesPositive + x.Value.VotesNegative))
                         .Take(25)
-                        .Select(x => x.Key)
-                        .ToList();
+                        .Select(x => x.Key)];
                     // iterate through all maps and reply
-                    foreach (var map in bestMaps)
+                    foreach (string? map in bestMaps)
+                    {
                         command.ReplyToCommand($"{map}: {Config.Maps[map].VotesPositive} / {Config.Maps[map].VotesNegative}");
+                    }
+
                     break;
                 case "worst_maps":
                     command.ReplyToCommand(Localizer["admin.worst_maps"]);
                     // get worst maps from Config.Maps
-                    var worstMaps = Config.Maps
+                    List<string> worstMaps = [.. Config.Maps
                         .Where(x => x.Value.VotesNegative > 0)
                         .OrderByDescending(x => (double)x.Value.VotesNegative / (x.Value.VotesPositive + x.Value.VotesNegative))
                         .Take(25)
-                        .Select(x => x.Key)
-                        .ToList();
-                    foreach (var map in worstMaps)
+                        .Select(x => x.Key)];
+                    foreach (string? map in worstMaps)
+                    {
                         command.ReplyToCommand($"{map}: {Config.Maps[map].VotesPositive} / {Config.Maps[map].VotesNegative}");
+                    }
+
                     break;
                 case "cleanup":
                     // remove all maps from Config.Maps that are not in _localMaps or _workshopMaps
                     if (_workshopMaps.Count > 0 || _localMaps.Count > 0)
                     {
-                        var mapsToRemove = Config.Maps
+                        List<string> mapsToRemove = [.. Config.Maps
                             .Where(x => !_localMaps.Contains(x.Key) && !_workshopMaps.Contains(x.Key))
-                            .Select(x => x.Key)
-                            .ToList();
+                            .Select(x => x.Key)];
                         command.ReplyToCommand(Localizer["admin.cleanup"].Value
                             .Replace("{amount}", mapsToRemove.Count.ToString()));
-                        foreach (var map in mapsToRemove)
-                            Config.Maps.Remove(map);
+                        foreach (string? map in mapsToRemove)
+                        {
+                            _ = Config.Maps.Remove(map);
+                        }
+
                         Config.Update();
                     }
                     else

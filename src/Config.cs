@@ -78,26 +78,38 @@ namespace NativeMapVote
 
         private void AddMapConfig(string mapName, int type)
         {
-            if (!Config.Maps.ContainsKey(mapName.ToLower()))
+            if (!Config.Maps.ContainsKey(mapName.ToLower(System.Globalization.CultureInfo.CurrentCulture)))
             {
-                Config.Maps.Add(mapName.ToLower(), new MapConfig());
+                Config.Maps.Add(mapName.ToLower(System.Globalization.CultureInfo.CurrentCulture), new MapConfig());
             }
-            Config.Maps[mapName.ToLower()].Type = type;
+            Config.Maps[mapName.ToLower(System.Globalization.CultureInfo.CurrentCulture)].Type = type;
         }
 
         private void UpdateMapPlayTime(string mapName)
         {
-            if (!Config.Maps.ContainsKey(mapName.ToLower())) return;
-            Config.Maps[mapName.ToLower()].TimesPlayed++;
+            if (!Config.Maps.ContainsKey(mapName.ToLower(System.Globalization.CultureInfo.CurrentCulture)))
+            {
+                return;
+            }
+
+            Config.Maps[mapName.ToLower(System.Globalization.CultureInfo.CurrentCulture)].TimesPlayed++;
         }
 
         private void SetMapVoteFeedback(string mapName, bool positive, int amount = 1)
         {
-            if (!Config.Maps.TryGetValue(mapName.ToLower(), out MapConfig? value)) return;
+            if (!Config.Maps.TryGetValue(mapName.ToLower(System.Globalization.CultureInfo.CurrentCulture), out MapConfig? value))
+            {
+                return;
+            }
+
             if (positive)
+            {
                 value.VotesPositive += amount;
+            }
             else
+            {
                 value.VotesNegative += amount;
+            }
         }
     }
 }
