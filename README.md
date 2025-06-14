@@ -12,7 +12,7 @@ The persistence manager gives persistence on player settings, map settings and a
 
 1. Download and extract the latest release from the [GitHub releases page](https://github.com/Kandru/cs2-native-mapvote/releases/).
 2. Stop the server.
-3. Move the "NativeMapVote" folder to the `/addons/counterstrikesharp/configs/plugins/` directory.
+3. Move the "NativeMapVote" folder to the `/addons/counterstrikesharp/plugins/` directory.
 4. Download The [CS2 Panorama Vote Manager](https://github.com/Kandru/cs2-panorama-vote-manager) and install it accordingly
 5. Restart the server.
 
