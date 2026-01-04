@@ -14,14 +14,17 @@ namespace NativeMapVote
             {
                 return;
             }
-
+            // delete old maps
             _localMaps.Clear();
+            // get values first to avoid non-main thread error
+            int port = cvarHostPort.GetPrimitiveValue<int>();
+            string password = cvarRconPassword.StringValue;
             _ = Task.Run(async () =>
             {
                 RCONClient client = new(
                     "127.0.0.1",
-                    cvarHostPort.GetPrimitiveValue<int>(),
-                    cvarRconPassword.StringValue,
+                    port,
+                    password,
                     1000);
                 try
                 {
