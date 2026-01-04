@@ -54,8 +54,8 @@ namespace NativeMapVote
             }
 
             List<string> maps = GetMapsForEndMatchVoting(
-                Config.EndmapVoteAmountMaps,
-                Config.EndmapVoteAmountRandomMaps
+                Config.Endmap.VoteAmountMaps,
+                Config.Endmap.VoteAmountRandomMaps
             );
             IEnumerable<CCSGameRulesProxy> proxies = Utilities.FindAllEntitiesByDesignerName<CCSGameRulesProxy>("cs_gamerules");
             CCSGameRulesProxy? proxy = proxies.FirstOrDefault();
@@ -66,7 +66,7 @@ namespace NativeMapVote
 
             IEnumerable<string> endMaps = _nominations.Values.Concat(maps)
                 .Distinct()
-                .Take(Config.EndmapVoteAmountMaps)
+                .Take(Config.Endmap.VoteAmountMaps)
                 .Where(_workshopMaps.Contains);
 
             foreach (ref int option in proxy.GameRules.EndMatchMapGroupVoteOptions)

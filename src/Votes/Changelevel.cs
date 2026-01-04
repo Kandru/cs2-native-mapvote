@@ -47,12 +47,12 @@ namespace NativeMapVote
             }
             _changelevelState.MapName = mapName;
             _changelevelState.Vote = new(
-                sfui: Config.ChangelevelSfuiString,
+                sfui: Config.Changelevel.SfuiString,
                 text: new Dictionary<string, string> {
                     {"en", mapName},
                     {"de", mapName},
                 },
-                time: Config.ChangelevelVoteDuration,
+                time: Config.Changelevel.VoteDuration,
                 team: -1,
                 playerIDs: [],
                 initiator: (int)player.UserId,
@@ -80,7 +80,7 @@ namespace NativeMapVote
                 _changelevelState.Success = true;
                 foreach (CCSPlayerController? entry in Utilities.GetPlayers().Where(static p => p.IsValid && !p.IsBot && !p.IsHLTV))
                 {
-                    if (Config.ChangelevelOnRoundEnd)
+                    if (Config.Changelevel.OnRoundEnd)
                     {
                         entry.PrintToChat(Localizer["changelevel.success_endround"].Value
                             .Replace("{map}", _changelevelState.MapName));
@@ -91,7 +91,7 @@ namespace NativeMapVote
                             .Replace("{map}", _changelevelState.MapName));
                     }
                 }
-                if (!Config.ChangelevelOnRoundEnd)
+                if (!Config.Changelevel.OnRoundEnd)
                 {
                     DoChangeLevel();
                 }
@@ -105,7 +105,7 @@ namespace NativeMapVote
                 }
             }
             _changelevelState.Vote = null;
-            _changelevelState.Cooldown = DateTimeOffset.UtcNow.ToUnixTimeSeconds() + Config.ChangelevelCooldown;
+            _changelevelState.Cooldown = DateTimeOffset.UtcNow.ToUnixTimeSeconds() + Config.Changelevel.Cooldown;
         }
 
         private void DoChangeLevel()

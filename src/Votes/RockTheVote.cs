@@ -23,7 +23,7 @@ namespace NativeMapVote
                     entry.PrintToChat(Localizer["rtv.success"]);
                 }
                 _rtvState.Success = true;
-                Server.ExecuteCommand(Config.RtvSuccessCommand);
+                Server.ExecuteCommand(Config.Rtv.SuccessCommand);
             }
             else
             {
@@ -33,7 +33,7 @@ namespace NativeMapVote
                 }
             }
             _rtvState.Vote = null;
-            _rtvState.Cooldown = DateTimeOffset.UtcNow.ToUnixTimeSeconds() + Config.RtvCooldown;
+            _rtvState.Cooldown = DateTimeOffset.UtcNow.ToUnixTimeSeconds() + Config.Rtv.Cooldown;
         }
     }
 }

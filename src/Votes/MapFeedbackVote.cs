@@ -15,13 +15,13 @@ namespace NativeMapVote
         private void InitializeMapFeedbackVote()
         {
             if (_voteManager == null
-                || !Config.FeedbackVoteEnabled
+                || !Config.Feedbackvote.Enabled
                 || _mapFeedbackState.Vote != null)
             {
                 return;
             }
 
-            int feedbackVoteTime = Config.FeedbackVoteDuration;
+            int feedbackVoteTime = Config.Feedbackvote.Duration;
             ConVar? mpEndmatchVoteNextLevelTime = ConVar.Find("mp_endmatch_votenextleveltime");
             ConVar? mpEndmatchVoteNextMap = ConVar.Find("mp_endmatch_votenextmap");
             if (mpEndmatchVoteNextMap != null
@@ -35,10 +35,10 @@ namespace NativeMapVote
                 return;
             }
             _mapFeedbackState.Vote = new(
-                sfui: Config.SfuiString,
+                sfui: Config.Sfui.SfuiString,
                 text: new Dictionary<string, string> {
-                    {"en", $"{Config.SfuiPrefix}Did you like {Server.MapName.ToLower(System.Globalization.CultureInfo.CurrentCulture)}?{Config.SfuiSuffix}"},
-                    {"de", $"{Config.SfuiPrefix}Hat dir {Server.MapName.ToLower(System.Globalization.CultureInfo.CurrentCulture)} gefallen?{Config.SfuiSuffix}"},
+                    {"en", $"{Config.Sfui.SfuiPrefix}Did you like {Server.MapName.ToLower(System.Globalization.CultureInfo.CurrentCulture)}?{Config.Sfui.SfuiSuffix}"},
+                    {"de", $"{Config.Sfui.SfuiPrefix}Hat dir {Server.MapName.ToLower(System.Globalization.CultureInfo.CurrentCulture)} gefallen?{Config.Sfui.SfuiSuffix}"},
                 },
                 time: feedbackVoteTime,
                 team: -1,
@@ -50,7 +50,7 @@ namespace NativeMapVote
                 callback: MapFeedbackVoteCallback
             );
             int seconds = _voteManager.AddVote(_mapFeedbackState.Vote);
-            if (seconds > Config.FeedbackVoteMaxDelay)
+            if (seconds > Config.Feedbackvote.MaxDelay)
             {
                 _ = _voteManager.RemoveVote(_mapFeedbackState.Vote);
             }

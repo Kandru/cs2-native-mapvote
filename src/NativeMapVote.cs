@@ -63,7 +63,7 @@ namespace NativeMapVote
         private HookResult OnRoundEnd(EventRoundEnd @event, GameEventInfo info)
         {
             // check if we need to change the level on round end
-            if (Config.ChangelevelOnRoundEnd)
+            if (Config.Changelevel.OnRoundEnd)
             {
                 DoChangeLevel();
             }

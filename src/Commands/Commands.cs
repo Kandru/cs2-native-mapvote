@@ -15,7 +15,7 @@ namespace NativeMapVote
         [CommandHelper(whoCanExecute: CommandUsage.CLIENT_ONLY, minArgs: 0, usage: "")]
         public void CommandRtv(CCSPlayerController player, CommandInfo command)
         {
-            if (!Config.RtvEnabled)
+            if (!Config.Rtv.Enabled)
             {
                 return;
             }
@@ -47,12 +47,12 @@ namespace NativeMapVote
                 return;
             }
             _rtvState.Vote = new(
-                sfui: Config.SfuiString,
+                sfui: Config.Sfui.SfuiString,
                 text: new Dictionary<string, string> {
-                    {"en", $"{Config.SfuiPrefix}RTV: want to change the map after this round?{Config.SfuiSuffix}"},
-                    {"de", $"{Config.SfuiPrefix}RTV: Möchtest du die Karte nach dieser Runde ändern?{Config.SfuiSuffix}"},
+                    {"en", $"{Config.Sfui.SfuiPrefix}RTV: want to change the map after this round?{Config.Sfui.SfuiSuffix}"},
+                    {"de", $"{Config.Sfui.SfuiPrefix}RTV: Möchtest du die Karte nach dieser Runde ändern?{Config.Sfui.SfuiSuffix}"},
                 },
-                time: Config.RtvVoteDuration,
+                time: Config.Rtv.VoteDuration,
                 team: -1,
                 playerIDs: [],
                 initiator: (int)player.UserId,
@@ -74,17 +74,17 @@ namespace NativeMapVote
         [CommandHelper(whoCanExecute: CommandUsage.CLIENT_ONLY, minArgs: 1, usage: "<mapname>")]
         public void CommandNom(CCSPlayerController player, CommandInfo command)
         {
-            if (!Config.NominationsEnabled)
+            if (!Config.Nominations.Enabled)
             {
                 return;
             }
 
             string mapName = command.GetArg(1);
             // check if max nominations is reached
-            if (_nominations.Count >= Config.MaxNominations && !_nominations.ContainsKey(player))
+            if (_nominations.Count >= Config.Nominations.MaxNominations && !_nominations.ContainsKey(player))
             {
                 command.ReplyToCommand(Localizer["nomination.max_reached"].Value
-                    .Replace("{amount}", Config.MaxNominations.ToString()));
+                    .Replace("{amount}", Config.Nominations.MaxNominations.ToString()));
                 return;
             }
             // check if maps do exist
@@ -124,7 +124,7 @@ namespace NativeMapVote
         [CommandHelper(whoCanExecute: CommandUsage.CLIENT_ONLY, minArgs: 0, usage: "")]
         public void CommandNoms(CCSPlayerController player, CommandInfo command)
         {
-            if (!Config.NominationsEnabled)
+            if (!Config.Nominations.Enabled)
             {
                 return;
             }
@@ -148,7 +148,7 @@ namespace NativeMapVote
         [CommandHelper(whoCanExecute: CommandUsage.CLIENT_ONLY, minArgs: 1, usage: "<mapname>")]
         public void CommandChangeLevel(CCSPlayerController player, CommandInfo command)
         {
-            if (!Config.ChangelevelEnabled
+            if (!Config.Changelevel.Enabled
                 || _voteManager == null)
             {
                 return;

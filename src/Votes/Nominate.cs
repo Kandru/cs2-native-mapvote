@@ -22,10 +22,10 @@ namespace NativeMapVote
                 return;
             }
             // check if max nominations is reached
-            if (_nominations.Count >= Config.MaxNominations && !_nominations.ContainsKey(player))
+            if (_nominations.Count >= Config.Nominations.MaxNominations && !_nominations.ContainsKey(player))
             {
                 command.ReplyToCommand(Localizer["nomination.max_reached"].Value
-                    .Replace("{amount}", Config.MaxNominations.ToString()));
+                    .Replace("{amount}", Config.Nominations.MaxNominations.ToString()));
                 return;
             }
             // check if map does not already exists in nominations
