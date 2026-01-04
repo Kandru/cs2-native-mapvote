@@ -24,37 +24,32 @@ namespace NativeMapVote
             {
                 return;
             }
-            // check if rtv was already successful
-            if (_rtvSuccess)
+            if (_rtvState.Success)
             {
                 command.ReplyToCommand(Localizer["rtv.already_success"]);
                 return;
             }
-            // check if changelevel was already successful
-            if (_changelevelSuccess)
+            if (_changelevelState.Success)
             {
                 command.ReplyToCommand(Localizer["changelevel.already_success"].Value
-                    .Replace("{map}", _changelevelMap)); // TODO: get players language
+                    .Replace("{map}", _changelevelState.MapName));
                 return;
             }
-            // check if rtv is in progress
-            if (_rtvVote != null)
+            if (_rtvState.Vote != null)
             {
                 command.ReplyToCommand(Localizer["rtv.in_progress"]);
                 return;
             }
-            // check if rtv cooldown is active
-            if (_rtvCooldown > DateTimeOffset.UtcNow.ToUnixTimeSeconds())
+            if (_rtvState.Cooldown > DateTimeOffset.UtcNow.ToUnixTimeSeconds())
             {
                 command.ReplyToCommand(Localizer["rtv.cooldown"].Value
-                    .Replace("{seconds}", (_rtvCooldown - DateTimeOffset.UtcNow.ToUnixTimeSeconds()).ToString()));
+                    .Replace("{seconds}", (_rtvState.Cooldown - DateTimeOffset.UtcNow.ToUnixTimeSeconds()).ToString()));
                 return;
             }
-            // create vote
-            _rtvVote = new(
+            _rtvState.Vote = new(
                 sfui: Config.SfuiString,
                 text: new Dictionary<string, string> {
-                    {"en", $"{Config.SfuiPrefix}RTV: want to change the map after this round?{Config.SfuiSuffix}"}, // TODO: get from language file
+                    {"en", $"{Config.SfuiPrefix}RTV: want to change the map after this round?{Config.SfuiSuffix}"},
                     {"de", $"{Config.SfuiPrefix}RTV: Möchtest du die Karte nach dieser Runde ändern?{Config.SfuiSuffix}"},
                 },
                 time: Config.RtvVoteDuration,
@@ -66,8 +61,7 @@ namespace NativeMapVote
                 flags: VoteFlags.None,
                 callback: RtvCallback
             );
-            // send vote
-            int seconds = _voteManager.AddVote(_rtvVote);
+            int seconds = _voteManager.AddVote(_rtvState.Vote);
             if (seconds > 0)
             {
                 command.ReplyToCommand(Localizer["rtv.vote_delay"].Value
@@ -161,29 +155,26 @@ namespace NativeMapVote
             }
 
             string mapName = command.GetArg(1);
-            // check if changelevel was already successful
-            if (_changelevelSuccess)
+            if (_changelevelState.Success)
             {
                 command.ReplyToCommand(Localizer["changelevel.already_success"].Value
-                    .Replace("{map}", _changelevelMap)); // TODO: get players language
+                    .Replace("{map}", _changelevelState.MapName));
                 return;
             }
-            if (_rtvSuccess)
+            if (_rtvState.Success)
             {
                 command.ReplyToCommand(Localizer["rtv.already_success"]);
                 return;
             }
-            // check if changelevel is in progress
-            if (_changelevelVote != null)
+            if (_changelevelState.Vote != null)
             {
                 command.ReplyToCommand(Localizer["changelevel.in_progress"]);
                 return;
             }
-            // check if changelevel cooldown is active
-            if (_changelevelCooldown > DateTimeOffset.UtcNow.ToUnixTimeSeconds())
+            if (_changelevelState.Cooldown > DateTimeOffset.UtcNow.ToUnixTimeSeconds())
             {
                 command.ReplyToCommand(Localizer["changelevel.cooldown"].Value
-                    .Replace("{seconds}", (_changelevelCooldown - DateTimeOffset.UtcNow.ToUnixTimeSeconds()).ToString()));
+                    .Replace("{seconds}", (_changelevelState.Cooldown - DateTimeOffset.UtcNow.ToUnixTimeSeconds()).ToString()));
                 return;
             }
             // check if maps do exist

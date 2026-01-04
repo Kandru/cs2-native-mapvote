@@ -7,24 +7,21 @@ namespace NativeMapVote
 {
     public partial class NativeMapVote
     {
-        private Vote? _mapFeedbackVote;
-
         private void MapFeedbackVoteReset()
         {
-            _mapFeedbackVote = null;
+            _mapFeedbackState.Reset();
         }
 
         private void InitializeMapFeedbackVote()
         {
             if (_voteManager == null
                 || !Config.FeedbackVoteEnabled
-                || _mapFeedbackVote != null)
+                || _mapFeedbackState.Vote != null)
             {
                 return;
             }
 
             int feedbackVoteTime = Config.FeedbackVoteDuration;
-            // get map choose time if available and add to feedback vote time
             ConVar? mpEndmatchVoteNextLevelTime = ConVar.Find("mp_endmatch_votenextleveltime");
             ConVar? mpEndmatchVoteNextMap = ConVar.Find("mp_endmatch_votenextmap");
             if (mpEndmatchVoteNextMap != null
@@ -37,11 +34,10 @@ namespace NativeMapVote
             {
                 return;
             }
-            // create vote
-            _mapFeedbackVote = new(
+            _mapFeedbackState.Vote = new(
                 sfui: Config.SfuiString,
                 text: new Dictionary<string, string> {
-                    {"en", $"{Config.SfuiPrefix}Did you like {Server.MapName.ToLower(System.Globalization.CultureInfo.CurrentCulture)}?{Config.SfuiSuffix}"}, // TODO: get from language file
+                    {"en", $"{Config.SfuiPrefix}Did you like {Server.MapName.ToLower(System.Globalization.CultureInfo.CurrentCulture)}?{Config.SfuiSuffix}"},
                     {"de", $"{Config.SfuiPrefix}Hat dir {Server.MapName.ToLower(System.Globalization.CultureInfo.CurrentCulture)} gefallen?{Config.SfuiSuffix}"},
                 },
                 time: feedbackVoteTime,
@@ -53,25 +49,22 @@ namespace NativeMapVote
                 flags: VoteFlags.AlwaysSuccessful | VoteFlags.DoNotEndUntilAllVoted,
                 callback: MapFeedbackVoteCallback
             );
-            // send vote
-            int seconds = _voteManager.AddVote(_mapFeedbackVote);
+            int seconds = _voteManager.AddVote(_mapFeedbackState.Vote);
             if (seconds > Config.FeedbackVoteMaxDelay)
             {
-                _ = _voteManager.RemoveVote(_mapFeedbackVote);
+                _ = _voteManager.RemoveVote(_mapFeedbackState.Vote);
             }
         }
 
         private void MapFeedbackVoteCallback(Vote vote, bool success)
         {
-            if (_mapFeedbackVote == null)
+            if (_mapFeedbackState.Vote == null)
             {
                 return;
             }
-            // update map feedback
             SetMapVoteFeedback(Server.MapName, true, vote.GetYesVotes());
             SetMapVoteFeedback(Server.MapName, false, vote.GetNoVotes());
-            // reset vote
-            _mapFeedbackVote = null;
+            _mapFeedbackState.Reset();
         }
     }
 }

@@ -86,7 +86,7 @@ namespace NativeMapVote
 
         public void Dispose()
         {
-            throw new NotImplementedException();
+            Close();
         }
     }
 }

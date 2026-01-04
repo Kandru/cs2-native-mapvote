@@ -9,22 +9,13 @@ namespace NativeMapVote
 {
     public partial class NativeMapVote
     {
-        private bool _changelevelSuccess;
-        private string _changelevelMap = "";
-        private long _changelevelCooldown;
-        private Vote? _changelevelVote;
-
         private void ChangelevelReset()
         {
-            _changelevelSuccess = false;
-            _changelevelMap = "";
-            _changelevelCooldown = 0;
-            if (_voteManager != null && _changelevelVote != null)
+            if (_voteManager != null && _changelevelState.Vote != null)
             {
-                _ = _voteManager.RemoveVote(_changelevelVote);
+                _ = _voteManager.RemoveVote(_changelevelState.Vote);
             }
-
-            _changelevelVote = null;
+            _changelevelState.Reset();
         }
 
         private void InitiateLevelChange(string mapName, CCSPlayerController player, CommandInfo command, bool sentFromMenu = false)
@@ -37,33 +28,28 @@ namespace NativeMapVote
             {
                 return;
             }
-            // check if changelevel was already successful
-            if (_changelevelSuccess)
+            if (_changelevelState.Success)
             {
                 command.ReplyToCommand(Localizer["changelevel.already_success"].Value
-                    .Replace("{map}", _changelevelMap)); // TODO: get players language
+                    .Replace("{map}", _changelevelState.MapName));
                 return;
             }
-            // check if changelevel is in progress
-            if (_changelevelVote != null)
+            if (_changelevelState.Vote != null)
             {
                 command.ReplyToCommand(Localizer["changelevel.in_progress"]);
                 return;
             }
-            // check if changelevel cooldown is active
-            if (_changelevelCooldown > DateTimeOffset.UtcNow.ToUnixTimeSeconds())
+            if (_changelevelState.Cooldown > DateTimeOffset.UtcNow.ToUnixTimeSeconds())
             {
                 command.ReplyToCommand(Localizer["changelevel.cooldown"].Value
-                    .Replace("{seconds}", (_changelevelCooldown - DateTimeOffset.UtcNow.ToUnixTimeSeconds()).ToString()));
+                    .Replace("{seconds}", (_changelevelState.Cooldown - DateTimeOffset.UtcNow.ToUnixTimeSeconds()).ToString()));
                 return;
             }
-            // set level name
-            _changelevelMap = mapName;
-            // create vote
-            _changelevelVote = new(
+            _changelevelState.MapName = mapName;
+            _changelevelState.Vote = new(
                 sfui: Config.ChangelevelSfuiString,
                 text: new Dictionary<string, string> {
-                    {"en", mapName}, // TODO: get from language file
+                    {"en", mapName},
                     {"de", mapName},
                 },
                 time: Config.ChangelevelVoteDuration,
@@ -75,14 +61,12 @@ namespace NativeMapVote
                 flags: VoteFlags.None,
                 callback: ChangelevelCallback
             );
-            // send vote
-            int seconds = _voteManager.AddVote(_changelevelVote);
+            int seconds = _voteManager.AddVote(_changelevelState.Vote);
             if (seconds > 0)
             {
                 command.ReplyToCommand(Localizer["changelevel.vote_delay"].Value
                     .Replace("{seconds}", seconds.ToString()));
             }
-            // close menu if not sent from menu
             if (sentFromMenu)
             {
                 MenuManager.CloseActiveMenu(player);
@@ -93,23 +77,20 @@ namespace NativeMapVote
         {
             if (success)
             {
-                // indicate success
-                _changelevelSuccess = true;
-                // send message to all players
+                _changelevelState.Success = true;
                 foreach (CCSPlayerController? entry in Utilities.GetPlayers().Where(static p => p.IsValid && !p.IsBot && !p.IsHLTV))
                 {
                     if (Config.ChangelevelOnRoundEnd)
                     {
                         entry.PrintToChat(Localizer["changelevel.success_endround"].Value
-                            .Replace("{map}", _changelevelMap)); // TODO: get players language
+                            .Replace("{map}", _changelevelState.MapName));
                     }
                     else
                     {
                         entry.PrintToChat(Localizer["changelevel.success_now"].Value
-                            .Replace("{map}", _changelevelMap)); // TODO: get players language
+                            .Replace("{map}", _changelevelState.MapName));
                     }
                 }
-                // change level if not on round end
                 if (!Config.ChangelevelOnRoundEnd)
                 {
                     DoChangeLevel();
@@ -117,33 +98,29 @@ namespace NativeMapVote
             }
             else
             {
-                // send message to all players
                 foreach (CCSPlayerController? entry in Utilities.GetPlayers().Where(static p => p.IsValid && !p.IsBot && !p.IsHLTV))
                 {
                     entry.PrintToChat(Localizer["changelevel.failed"].Value
-                        .Replace("{map}", _changelevelMap)); // TODO: get players language
+                        .Replace("{map}", _changelevelState.MapName));
                 }
             }
-            // reset vote
-            _changelevelVote = null;
-            // set cooldown
-            _changelevelCooldown = DateTimeOffset.UtcNow.ToUnixTimeSeconds() + Config.ChangelevelCooldown;
+            _changelevelState.Vote = null;
+            _changelevelState.Cooldown = DateTimeOffset.UtcNow.ToUnixTimeSeconds() + Config.ChangelevelCooldown;
         }
 
         private void DoChangeLevel()
         {
-            if (!_changelevelSuccess)
+            if (!_changelevelState.Success)
             {
                 return;
             }
-            // check if _changelevelMap is in local maps
-            if (_localMaps.Contains(_changelevelMap))
+            if (_localMaps.Contains(_changelevelState.MapName))
             {
-                _ = AddTimer(2f, () => { Server.ExecuteCommand($"changelevel {_changelevelMap}"); });
+                _ = AddTimer(2f, () => { Server.ExecuteCommand($"changelevel {_changelevelState.MapName}"); });
             }
-            else if (_workshopMaps.Contains(_changelevelMap))
+            else if (_workshopMaps.Contains(_changelevelState.MapName))
             {
-                _ = AddTimer(2f, () => { Server.ExecuteCommand($"ds_workshop_changelevel {_changelevelMap}"); });
+                _ = AddTimer(2f, () => { Server.ExecuteCommand($"ds_workshop_changelevel {_changelevelState.MapName}"); });
             }
         }
     }

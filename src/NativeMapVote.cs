@@ -14,6 +14,10 @@ namespace NativeMapVote
         private static PluginCapability<IPanoramaVoteManagerAPI> VoteAPI { get; } = new("panoramavotemanager:api");
         private IPanoramaVoteManagerAPI? _voteManager;
 
+        private readonly RtvState _rtvState = new();
+        private readonly ChangelevelState _changelevelState = new();
+        private readonly MapFeedbackState _mapFeedbackState = new();
+
         public override void Load(bool hotReload)
         {
             RegisterListener<Listeners.OnMapStart>(OnMapStart);
@@ -34,9 +38,8 @@ namespace NativeMapVote
 
         public override void Unload(bool hotReload)
         {
-            RtvReset();
+            ResetAllVotes();
             NominateReset();
-            ChangelevelReset();
             RemoveListener<Listeners.OnMapStart>(OnMapStart);
             RemoveListener<Listeners.OnMapEnd>(OnMapEnd);
             DeregisterEventHandler<EventRoundEnd>(OnRoundEnd);
@@ -51,11 +54,8 @@ namespace NativeMapVote
 
         private void OnMapEnd()
         {
-            RtvReset();
+            ResetAllVotes();
             NominateReset();
-            ChangelevelReset();
-            MapFeedbackVoteReset();
-            // save config to disk
             Config.Update();
         }
 
@@ -72,13 +72,17 @@ namespace NativeMapVote
 
         private HookResult OnIntermission(EventCsIntermission @event, GameEventInfo info)
         {
-            // update playtime of map
             UpdateMapPlayTime(Server.MapName);
-            // update end match voting
             UpdateEndMatchVoting();
-            // initialize feedback vote
             InitializeMapFeedbackVote();
             return HookResult.Continue;
+        }
+
+        private void ResetAllVotes()
+        {
+            RtvReset();
+            ChangelevelReset();
+            MapFeedbackVoteReset();
         }
     }
 }

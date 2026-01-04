@@ -5,48 +5,35 @@ namespace NativeMapVote
 {
     public partial class NativeMapVote
     {
-        private bool _rtvSuccess;
-        private long _rtvCooldown;
-        private Vote? _rtvVote;
-
         private void RtvReset()
         {
-            _rtvSuccess = false;
-            _rtvCooldown = 0;
-            if (_voteManager != null && _rtvVote != null)
+            if (_voteManager != null && _rtvState.Vote != null)
             {
-                _ = _voteManager.RemoveVote(_rtvVote);
+                _ = _voteManager.RemoveVote(_rtvState.Vote);
             }
-
-            _rtvVote = null;
+            _rtvState.Reset();
         }
 
         private void RtvCallback(Vote vote, bool success)
         {
             if (success)
             {
-                // send message to all players
                 foreach (CounterStrikeSharp.API.Core.CCSPlayerController? entry in Utilities.GetPlayers().Where(static p => p.IsValid && !p.IsBot && !p.IsHLTV))
                 {
-                    entry.PrintToChat(Localizer["rtv.success"]); // TODO: get players language
+                    entry.PrintToChat(Localizer["rtv.success"]);
                 }
-                // indicate success
-                _rtvSuccess = true;
-                // execute server commands
+                _rtvState.Success = true;
                 Server.ExecuteCommand(Config.RtvSuccessCommand);
             }
             else
             {
-                // send message to all players
                 foreach (CounterStrikeSharp.API.Core.CCSPlayerController? entry in Utilities.GetPlayers().Where(static p => p.IsValid && !p.IsBot && !p.IsHLTV))
                 {
-                    entry.PrintToChat(Localizer["rtv.failed"]); // TODO: get players language
+                    entry.PrintToChat(Localizer["rtv.failed"]);
                 }
             }
-            // reset vote
-            _rtvVote = null;
-            // set cooldown
-            _rtvCooldown = DateTimeOffset.UtcNow.ToUnixTimeSeconds() + Config.RtvCooldown;
+            _rtvState.Vote = null;
+            _rtvState.Cooldown = DateTimeOffset.UtcNow.ToUnixTimeSeconds() + Config.RtvCooldown;
         }
     }
 }

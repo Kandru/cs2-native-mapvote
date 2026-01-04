@@ -38,10 +38,9 @@ namespace NativeMapVote
 
             if (random > 0)
             {
-                IEnumerable<string> randomMaps = GetRandomMaps(100)
+                maps.AddRange(GetRandomMaps(100)
                     .Where(map => !maps.Contains(map))
-                    .Take(total - maps.Count + random);
-                maps.AddRange(randomMaps);
+                    .Take(total - maps.Count + random));
             }
 
             return maps;
@@ -49,8 +48,7 @@ namespace NativeMapVote
 
         private void UpdateEndMatchVoting()
         {
-            if (_workshopMaps.Count == 0
-                || Config.Maps.Count == 0)
+            if (_workshopMaps.Count == 0 || Config.Maps.Count == 0)
             {
                 return;
             }
@@ -61,21 +59,18 @@ namespace NativeMapVote
             );
             IEnumerable<CCSGameRulesProxy> proxies = Utilities.FindAllEntitiesByDesignerName<CCSGameRulesProxy>("cs_gamerules");
             CCSGameRulesProxy? proxy = proxies.FirstOrDefault();
-            if (proxy == null
-                || !proxy.IsValid
-                || proxy.GameRules == null)
+            if (proxy == null || !proxy.IsValid || proxy.GameRules == null)
             {
                 return;
             }
-            // we need to merge _nominations and maps until we reach EndmapVoteAmountMaps. Priority is on _nominations, fill up with maps
+
             IEnumerable<string> endMaps = _nominations.Values.Concat(maps)
                 .Distinct()
-                .Take(Config.EndmapVoteAmountMaps);
-            // only use endMaps which are present in _workshopMaps (vote only refers to mapgroup maps)
-            endMaps = endMaps.Where(_workshopMaps.Contains);
+                .Take(Config.EndmapVoteAmountMaps)
+                .Where(_workshopMaps.Contains);
+
             foreach (ref int option in proxy.GameRules.EndMatchMapGroupVoteOptions)
             {
-                // get map from endMapsList and assign it to option
                 if (!endMaps.Any())
                 {
                     break;
