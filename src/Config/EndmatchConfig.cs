@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace NativeMapVote.Config
 {
-    public class EndmapConfig
+    public class EndmatchConfig
     {
         [JsonPropertyName("vote_amount_total_maps")]
         public int VoteAmountMaps { get; set; } = 10;

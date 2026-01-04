@@ -22,8 +22,8 @@ namespace NativeMapVote
         [JsonPropertyName("nominations")]
         public NominationsConfig Nominations { get; set; } = new();
 
-        [JsonPropertyName("endmap")]
-        public EndmapConfig Endmap { get; set; } = new();
+        [JsonPropertyName("endmatch")]
+        public EndmatchConfig Endmatch { get; set; } = new();
 
         [JsonPropertyName("changelevel")]
         public ChangelevelConfig Changelevel { get; set; } = new();
