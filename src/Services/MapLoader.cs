@@ -1,4 +1,4 @@
-namespace NativeMapVote
+namespace NativeMapVote.Services
 {
     public class MapLoader
     {

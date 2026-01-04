@@ -1,6 +1,6 @@
 using PanoramaVoteManagerAPI.Vote;
 
-namespace NativeMapVote
+namespace NativeMapVote.State
 {
     public class RtvState
     {

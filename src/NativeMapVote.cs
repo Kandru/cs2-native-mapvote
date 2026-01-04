@@ -3,6 +3,7 @@ using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Capabilities;
 using CounterStrikeSharp.API.Modules.Extensions;
 using PanoramaVoteManagerAPI;
+using NativeMapVote.State;
 
 namespace NativeMapVote
 {

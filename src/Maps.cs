@@ -1,4 +1,6 @@
 using CounterStrikeSharp.API.Modules.Cvars;
+using NativeMapVote.Services;
+using NativeMapVote.State;
 
 namespace NativeMapVote
 {

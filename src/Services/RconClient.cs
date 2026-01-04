@@ -1,7 +1,7 @@
 using System.Net.Sockets;
 using System.Text;
 
-namespace NativeMapVote
+namespace NativeMapVote.Services
 {
     public class RCONClient(string ip, int port, string password, int timeout = 5000) : IDisposable
     {
